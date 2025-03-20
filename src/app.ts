@@ -1,11 +1,7 @@
-// ℹ️ Gets access to environment variables/settings
-// https://www.npmjs.com/package/dotenv
-require('dotenv').config();
+import express from 'express';
 
 // Handles http requests (express is node js framework)
 // https://www.npmjs.com/package/express
-const express: typeof import('express') = require('express');
-
 const app = express();
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware

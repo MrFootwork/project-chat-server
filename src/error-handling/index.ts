@@ -1,7 +1,6 @@
-// import { Application, Request, Response } from 'express';
+import { Application, Request, Response } from 'express';
 
-// module.exports = (app: Application) => {
-module.exports = (app: import('express').Application) => {
+module.exports = (app: Application) => {
   app.use((req, res) => {
     // this middleware runs whenever requested page is not available
     res.status(404).json({
@@ -10,23 +9,16 @@ module.exports = (app: import('express').Application) => {
     });
   });
 
-  // app.use((err, req: Request, res: Response) => {
-  app.use(
-    (
-      err: import('express').Request,
-      req: import('express').Request,
-      res: import('express').Response
-    ) => {
-      // whenever you call next(err), this middleware will handle the error
-      // always logs the error
-      console.error('ERROR', req.method, req.path, err);
+  app.use((err, req: Request, res: Response) => {
+    // whenever you call next(err), this middleware will handle the error
+    // always logs the error
+    console.error('ERROR', req.method, req.path, err);
 
-      // only render if the error ocurred before sending the response
-      if (!res.headersSent) {
-        res.status(500).json({
-          message: 'Internal server error. Check the server console',
-        });
-      }
+    // only render if the error ocurred before sending the response
+    if (!res.headersSent) {
+      res.status(500).json({
+        message: 'Internal server error. Check the server console',
+      });
     }
-  );
+  });
 };
