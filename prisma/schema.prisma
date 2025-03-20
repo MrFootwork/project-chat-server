@@ -18,6 +18,7 @@ model Book {
   title      String
   year       Int
   summary    String?
+  test       String
   quantity   Int      @default(0)
   genre      String[]
   authorName String

@@ -14,7 +14,7 @@ router.post('/books', async (req, res) => {
     res.json(newBook);
   } catch (error) {
     console.log(error);
-    res.json('Something went wrong');
+    res.json(`Something went wrong, ${error}`);
     return;
   }
 });
