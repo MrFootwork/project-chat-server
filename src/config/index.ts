@@ -15,7 +15,9 @@ import cookieParser from 'cookie-parser';
 // unless the request if from the same domain, by default express wont accept POST requests
 import cors from 'cors';
 
-const FRONTEND_URL = process.env.ORIGIN || 'http://localhost:5173';
+const FRONTEND_URL_LOCAL = process.env.ORIGIN_LOCAL || 'http://localhost:5173';
+const FRONTEND_URL_PROD =
+  process.env.ORIGIN_PRODUCTION || 'https://project-chat-client.onrender.com';
 
 // Middleware configuration
 module.exports = (app: Application) => {
@@ -26,7 +28,7 @@ module.exports = (app: Application) => {
   // controls a very specific header to pass headers from the frontend
   app.use(
     cors({
-      origin: [FRONTEND_URL],
+      origin: [FRONTEND_URL_LOCAL, FRONTEND_URL_PROD],
     })
   );
 
