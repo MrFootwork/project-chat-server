@@ -9,6 +9,7 @@ dist/
 
 # Environment Variables should NEVER be published
 .env
+.env.*
 
 # macOS
 .DS_Store

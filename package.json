@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "build": "tsc",
-    "start": "node server.js",
-    "dev": "ts-node-dev src/server.ts"
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev src/server.ts",
+    "prisma-studio": "dotenv -e .env.local -- npx prisma studio",
+    "prisma-studio:local": "dotenv -e .env.local -- npx prisma studio",
+    "prisma-studio:prod": "dotenv -e .env.production -- npx prisma studio",
+    "migrate:deploy": "dotenv -e .env.production -- npx prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",
