@@ -4,6 +4,9 @@ node_modules/
 # Debug log from npm
 npm-debug.log
 
+# Build files
+dist/
+
 # Environment Variables should NEVER be published
 .env
 
