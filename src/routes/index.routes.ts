@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import prisma from '../db';
+import usersRoutes from './users.routes';
+import checkProtection from '../middlewares/protected';
 
-const router: Router = require('express').Router();
+const router = Router();
+
+router.use('/users', usersRoutes);
+// router.use('/users', checkProtection, usersRoutes);
 
 router.get('/', (req, res) => {
   res.json('All good in here');
@@ -30,27 +35,4 @@ router.get('/books', async (req, res) => {
   }
 });
 
-router.post('/users', async (req, res) => {
-  try {
-    const newUser = await prisma.user.create({ data: req.body });
-    console.log('New user:', newUser);
-    res.json(newUser);
-  } catch (error) {
-    console.log(error);
-    res.json(`Something went wrong, ${error}`);
-    return;
-  }
-});
-
-router.get('/users', async (req, res) => {
-  try {
-    const users = await prisma.user.findMany();
-    res.json(users);
-  } catch (error) {
-    console.log(error);
-    res.json('Something went wrong');
-    return;
-  }
-});
-
-module.exports = router;
+export default router;
