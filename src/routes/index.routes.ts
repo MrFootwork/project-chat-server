@@ -30,4 +30,27 @@ router.get('/books', async (req, res) => {
   }
 });
 
+router.post('/users', async (req, res) => {
+  try {
+    const newUser = await prisma.user.create({ data: req.body });
+    console.log('New user:', newUser);
+    res.json(newUser);
+  } catch (error) {
+    console.log(error);
+    res.json(`Something went wrong, ${error}`);
+    return;
+  }
+});
+
+router.get('/users', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    res.json(users);
+  } catch (error) {
+    console.log(error);
+    res.json('Something went wrong');
+    return;
+  }
+});
+
 module.exports = router;
