@@ -1,5 +1,8 @@
-import express from 'express';
+import express, { ErrorRequestHandler } from 'express';
 import indexRoutes from './routes/index.routes';
+import authRoutes from './routes/auth.routes';
+// import errorMiddleware from './middlewares/error';
+import { errorHandler, notFoundHandler } from './middlewares/error';
 
 // Handles http requests (express is node js framework)
 // https://www.npmjs.com/package/express
@@ -10,8 +13,12 @@ require('./config')(app);
 
 // Routes
 app.use('/api', indexRoutes);
+app.use('/auth', authRoutes);
 
-// ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
-require('./middlewares/error')(app);
+// 404 handler (must come after all routes)
+app.use(notFoundHandler);
+
+// Error-handling middleware (must come last)
+app.use(errorHandler as ErrorRequestHandler);
 
 module.exports = app;
