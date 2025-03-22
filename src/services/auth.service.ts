@@ -43,7 +43,6 @@ export async function checkPasswordMatch(password: string, userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
-    console.log(password, user.password);
     return bcrypt.compareSync(password, user.password);
   } catch (error) {
     throw error;

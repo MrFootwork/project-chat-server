@@ -4,6 +4,7 @@ import indexRoutes from './routes/index.routes';
 import authRoutes from './routes/auth.routes';
 import authMiddleware from './middlewares/auth';
 import { errorHandler, notFoundHandler } from './middlewares/error';
+import isProtected from './middlewares/protected';
 
 // Handles http requests (express is node js framework)
 // https://www.npmjs.com/package/express
@@ -16,7 +17,7 @@ require('./config')(app);
 app.use(authMiddleware);
 
 // Routes
-app.use('/api', indexRoutes);
+app.use('/api', isProtected, indexRoutes);
 app.use('/auth', authRoutes);
 app.use(healthRoutes);
 
