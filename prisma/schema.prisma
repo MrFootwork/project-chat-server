@@ -13,19 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Book {
-  id         String   @id @default(cuid())
-  title      String
-  year       Int
-  summary    String?
-  test       String
-  quantity   Int      @default(0)
-  genre      String[]
-  authorName String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
