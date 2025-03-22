@@ -22,45 +22,45 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  // Messages Message[]
-  // Roles    RoomConfig[]
+  Messages Message[]
+  Roles    RoomConfig[]
 }
 
-// model Room {
-//   id        String   @id @default(cuid())
-//   name      String
-//   private   Boolean  @default(true)
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
+model Room {
+  id        String   @id @default(cuid())
+  name      String
+  private   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-//   // Relations
-//   Messages Message[]
-//   Users    RoomConfig[]
-// }
+  // Relations
+  Messages Message[]
+  Users    RoomConfig[]
+}
 
-// model Message {
-//   id        String   @id @default(cuid())
-//   content   String
-//   edited    Boolean  @default(false)
-//   userId    String
-//   roomId    String
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  edited    Boolean  @default(false)
+  userId    String
+  roomId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-//   // Relations
-//   User User @relation(fields: [userId], references: [id])
-//   Room Room @relation(fields: [roomId], references: [id])
-// }
+  // Relations
+  User User @relation(fields: [userId], references: [id])
+  Room Room @relation(fields: [roomId], references: [id])
+}
 
 // // Join table for Admins
-// model RoomConfig {
-//   id      String  @id @default(cuid())
-//   userId  String
-//   roomId  String
-//   isAdmin Boolean @default(false)
+model RoomConfig {
+  id      String  @id @default(cuid())
+  userId  String
+  roomId  String
+  isAdmin Boolean @default(false)
 
-//   User User @relation(fields: [userId], references: [id])
-//   Room Room @relation(fields: [roomId], references: [id])
+  User User @relation(fields: [userId], references: [id])
+  Room Room @relation(fields: [roomId], references: [id])
 
-//   @@unique([userId, roomId]) // Ensure a user can only participate in a room once
-// }
+  @@unique([userId, roomId]) // Ensure a user can only participate in a room once
+}
