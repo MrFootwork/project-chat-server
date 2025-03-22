@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../db';
+import isProtected from '../middlewares/protected';
 
 const router = Router();
 
@@ -14,6 +15,15 @@ router.post('/', async (req, res, next) => {
 });
 
 router.get('/', async (req, res, next) => {
+  try {
+    const users = await prisma.user.findMany();
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/protected', isProtected, async (req, res, next) => {
   try {
     const users = await prisma.user.findMany();
     res.json(users);

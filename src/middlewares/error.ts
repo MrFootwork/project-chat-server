@@ -3,6 +3,7 @@ import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
 } from '@prisma/client/runtime/library';
+import { JsonWebTokenError } from 'jsonwebtoken';
 
 // Error-handling middleware
 export const errorHandler = (
@@ -19,6 +20,15 @@ export const errorHandler = (
     res.status(401).json({
       error: 'wrong_credentials',
       message: '🔐🔐 Wrong Credentials 🙅‍♂️🙅‍♀️',
+    });
+
+    return;
+  }
+
+  if (err instanceof JsonWebTokenError) {
+    res.status(401).json({
+      error: 'token_error',
+      message: '🔐🔐 Token is invalid 🙅‍♂️🙅‍♀️',
     });
 
     return;

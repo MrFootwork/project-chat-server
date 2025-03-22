@@ -18,7 +18,6 @@ router.post('/signup', async (req, res, next) => {
 router.post('/login', async (req, res, next) => {
   try {
     const body = req.body;
-    console.log(`🚀 ~ router.post ~ body:`, body);
 
     // Validate and narrow down req.body
     if (!isLoginWithName(body) && !isLoginWithEmail(body)) {
@@ -29,20 +28,10 @@ router.post('/login', async (req, res, next) => {
       return;
     }
 
-    console.log(
-      `🚀 ~ router.post ~ isLoginWithName(body):`,
-      isLoginWithName(body)
-    );
-    console.log(
-      `🚀 ~ router.post ~ isLoginWithEmail(body):`,
-      isLoginWithEmail(body)
-    );
-
     // Check if user exists
     let user: User;
     if (isLoginWithName(body)) user = await auth.getUserByName(body.name);
     if (isLoginWithEmail(body)) user = await auth.getUserByEmail(body.email);
-    console.log(`🚀 ~ router.post ~ user:`, user);
     if (!user) throw Error(`NoUserError`);
 
     // Check if password matches
@@ -50,7 +39,6 @@ router.post('/login', async (req, res, next) => {
       body.password,
       user.id
     );
-    console.log(`🚀 ~ router.post ~ userPasswordMatches:`, userPasswordMatches);
     if (!userPasswordMatches) throw Error(`WrongPasswordError`);
 
     // Create and respond with JWT

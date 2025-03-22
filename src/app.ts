@@ -2,7 +2,7 @@ import express, { ErrorRequestHandler } from 'express';
 import healthRoutes from './routes/health.routes';
 import indexRoutes from './routes/index.routes';
 import authRoutes from './routes/auth.routes';
-// import errorMiddleware from './middlewares/error';
+import authMiddleware from './middlewares/auth';
 import { errorHandler, notFoundHandler } from './middlewares/error';
 
 // Handles http requests (express is node js framework)
@@ -11,6 +11,9 @@ const app = express();
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
 require('./config')(app);
+
+// Auth
+app.use(authMiddleware);
 
 // Routes
 app.use('/api', indexRoutes);
