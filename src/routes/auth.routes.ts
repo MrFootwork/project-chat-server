@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import * as auth from '../services/auth.service';
 import { cookieSet } from '../config/auth';
+import { User } from '@prisma/client';
 
 const router = Router();
 
 router.post('/signup', async (req, res, next) => {
   try {
-    console.log(req.body);
     // TODO Handle duplicate email
     await auth.createUser(req.body);
     res.status(201).json({ message: 'User created' });
@@ -17,11 +17,26 @@ router.post('/signup', async (req, res, next) => {
 
 router.post('/login', async (req, res, next) => {
   try {
-    const user = await auth.getUserByEmail(req.body.email);
-    if (!user) throw Error(`NoEmailError`);
+    const body = req.body;
 
+    // Validate and narrow down req.body
+    if (!isLoginWithName(body) && !isLoginWithEmail(body)) {
+      res.status(400).json({
+        error: 'Invalid input',
+        message: 'Either name or email must be provided along with a password.',
+      });
+      return;
+    }
+
+    // Check if user exists
+    let user: User;
+    if (isLoginWithName(body)) user = await auth.getUserByName(body.name);
+    if (isLoginWithEmail(body)) user = await auth.getUserByEmail(body.email);
+    if (!user) throw Error(`NoUserError`);
+
+    // Check if password matches
     const userPasswordMatches = await auth.checkPasswordMatch(
-      req.body.password,
+      body.password,
       user.id
     );
     if (!userPasswordMatches) throw Error(`WrongPasswordError`);
@@ -54,5 +69,19 @@ router.post('/login', async (req, res, next) => {
 //     next(error);
 //   }
 // });
+
+// Type guard to check if req.body is InputUserLogin with name
+function isLoginWithName(
+  body: any
+): body is { name: string; password: string } {
+  return typeof body.name === 'string' && typeof body.password === 'string';
+}
+
+// Type guard to check if req.body is InputUserLogin with email
+function isLoginWithEmail(
+  body: any
+): body is { email: string; password: string } {
+  return typeof body.email === 'string' && typeof body.password === 'string';
+}
 
 export default router;

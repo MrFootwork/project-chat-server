@@ -1,41 +1,8 @@
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { Application, Request, Response, NextFunction } from 'express';
-
-// const errorMiddleware = (app: Application) => {
-//   // Error handler
-//   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-//     // whenever you call next(err), this middleware will handle the error
-//     // always logs the error
-//     console.error('ERROR', req.method, req.path, err);
-
-//     // Handle Prisma errors
-//     if (err instanceof PrismaClientKnownRequestError) {
-//       if (err.code === 'P2002') {
-//         // Handle unique constraint violation
-//         return res.status(409).json({
-//           message: 'A record with this field already exists.',
-//           target: err.meta?.target, // Optional: Include the target field(s)
-//         });
-//       }
-//     }
-
-//     // Other errors
-//     if (!res.headersSent) {
-//       res.status(500).json({
-//         message: 'Internal server error. Check the server console',
-//       });
-//     }
-//   });
-
-//   // 404 handler
-//   app.use((req, res) => {
-//     // this middleware runs whenever requested page is not available
-//     res.status(404).json({
-//       message:
-//         'This route does not exist, you should probably look at your URL or what your backend is expecting',
-//     });
-//   });
-// };
+import { Request, Response, NextFunction } from 'express';
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+} from '@prisma/client/runtime/library';
 
 // Error-handling middleware
 export const errorHandler = (
@@ -45,12 +12,12 @@ export const errorHandler = (
   next: NextFunction
 ) => {
   // Log the error
-  console.error('ERROR', req.method, req.path, err);
+  console.error('❌ ERROR', req.method, req.path, err);
 
   // Auth
-  if (err.message === 'NoEmailError' || err.message === 'WrongPasswordError') {
+  if (err.message === 'NoUserError' || err.message === 'WrongPasswordError') {
     res.status(401).json({
-      error: 'wrong credentials',
+      error: 'wrong_credentials',
       message: '🔐🔐 Wrong Credentials 🙅‍♂️🙅‍♀️',
     });
 
@@ -62,9 +29,11 @@ export const errorHandler = (
     if (err.code === 'P2002') {
       // Handle unique constraint violation
       res.status(409).json({
-        error: 'duplicate record',
-        message: `A record with this field already exists.`,
-        target: err.meta?.target, // Optional: Include the target field(s)
+        error: 'duplicate_record',
+        message: `A record with the specified ${
+          (err.meta?.target as string[]).join(', ') || 'field(s)'
+        } already exists. Please use a different value.`,
+        target: err.meta?.target,
       });
 
       return;
@@ -72,6 +41,17 @@ export const errorHandler = (
 
     res.status(500).json({
       message: 'Unhandled Prisma error. Check the server console',
+    });
+
+    return;
+  }
+
+  // No Database Connection
+  if (err instanceof PrismaClientInitializationError) {
+    res.status(500).json({
+      error: 'database_connection_error',
+      message:
+        'Unable to connect to the database. Please check your database connection string, environment variables, and server logs for more details.',
     });
 
     return;
