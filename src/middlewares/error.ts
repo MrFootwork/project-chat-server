@@ -47,6 +47,16 @@ export const errorHandler = (
   // Log the error
   console.error('ERROR', req.method, req.path, err);
 
+  // Auth
+  if (err.message === 'NoEmailError' || err.message === 'WrongPasswordError') {
+    res.status(401).json({
+      error: 'wrong credentials',
+      message: '🔐🔐 Wrong Credentials 🙅‍♂️🙅‍♀️',
+    });
+
+    return;
+  }
+
   // Handle Prisma-specific errors
   if (err instanceof PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as auth from '../services/auth.service';
+import { cookieSet } from '../config/auth';
 
 const router = Router();
 
@@ -14,22 +15,25 @@ router.post('/signup', async (req, res, next) => {
   }
 });
 
-// router.post('/login', async (req, res, next) => {
-//   try {
-//     const user = await getUserByEmail(req.body.email);
-//     if (!user) throw Error(`🔐🔐 Wrong Credentials 🙅‍♂️🙅‍♀️`, { cause: 'no-user' });
+router.post('/login', async (req, res, next) => {
+  try {
+    const user = await auth.getUserByEmail(req.body.email);
+    if (!user) throw Error(`NoEmailError`);
 
-//     if (await checkPasswordMatch(req.body.password, user._id)) {
-//       const token = await createJWTFromUser(user);
-//       res.cookie('bearer', token, cookieOptions.set);
-//       res.status(200).json({ jwt: token });
-//       return;
-//     }
-//     res.status(401).json({ message: 'Email or Password is incorrect' });
-//   } catch (error) {
-//     next(error);
-//   }
-// });
+    const userPasswordMatches = await auth.checkPasswordMatch(
+      req.body.password,
+      user.id
+    );
+    if (!userPasswordMatches) throw Error(`WrongPasswordError`);
+
+    // Create and respond with JWT
+    const token = await auth.createJWTFromUser(user);
+    res.cookie('bearer', token, cookieSet);
+    res.status(200).json({ jwt: token });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // router.get('/refresh-token', async (req, res, next) => {
 //   try {
