@@ -1,4 +1,4 @@
-import { InputUserLogin, InputUserSignup } from '../types/auth';
+import { InputUserLogin, InputUserSignup, JwtPayload } from '../types/auth';
 import * as bcrypt from 'bcrypt';
 import prisma from '../db';
 import jwt from 'jsonwebtoken';
@@ -56,6 +56,23 @@ export async function createJWTFromUser(user: User) {
     email: user.email,
   };
   return jwt.sign(userPayload, JWT_SECRET);
+}
+
+export async function getUserFromJWT(token: string) {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
+
+    if (!user) return null;
+
+    const { password, ...userWithoutPassword } = user;
+
+    return userWithoutPassword;
+  } catch (error) {
+    throw error;
+  }
 }
 
 function hashUserPassword(user: InputUserSignup) {

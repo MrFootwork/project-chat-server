@@ -10,3 +10,10 @@ export type InputUserLogin = (
 ) & {
   password: string;
 };
+
+export type JwtPayload = {
+  id: string;
+  name: string;
+  email: string;
+  iat: number;
+};

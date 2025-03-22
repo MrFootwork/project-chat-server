@@ -2,13 +2,7 @@ import { Response, NextFunction } from 'express';
 import { RequestToken } from '../types/requests';
 // const jwt = require('jsonwebtoken');
 import jwt from 'jsonwebtoken';
-
-type JwtPayload = {
-  id: string;
-  name: string;
-  email: string;
-  iat: number;
-};
+import { JwtPayload } from '../types/auth';
 
 // Adds token and userId to request, if cookie or authorization header is provided
 function authMiddleware(
