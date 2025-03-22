@@ -52,7 +52,7 @@ export const errorHandler = (
     if (err.code === 'P2002') {
       // Handle unique constraint violation
       res.status(409).json({
-        error: 'duplicate email',
+        error: 'duplicate record',
         message: `A record with this field already exists.`,
         target: err.meta?.target, // Optional: Include the target field(s)
       });

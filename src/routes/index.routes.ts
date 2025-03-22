@@ -8,7 +8,7 @@ const router = Router();
 router.use('/users', usersRoutes);
 // router.use('/users', checkProtection, usersRoutes);
 
-router.get('/', (req, res) => {
+router.get('/', (_, res) => {
   res.json('All good in here');
 });
 
@@ -24,7 +24,7 @@ router.post('/books', async (req, res) => {
   }
 });
 
-router.get('/books', async (req, res) => {
+router.get('/books', async (_, res) => {
   try {
     const books = await prisma.book.findMany();
     res.json(books);

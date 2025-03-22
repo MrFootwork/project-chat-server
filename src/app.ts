@@ -1,4 +1,5 @@
 import express, { ErrorRequestHandler } from 'express';
+import healthRoutes from './routes/health.routes';
 import indexRoutes from './routes/index.routes';
 import authRoutes from './routes/auth.routes';
 // import errorMiddleware from './middlewares/error';
@@ -14,6 +15,7 @@ require('./config')(app);
 // Routes
 app.use('/api', indexRoutes);
 app.use('/auth', authRoutes);
+app.use(healthRoutes);
 
 // 404 handler (must come after all routes)
 app.use(notFoundHandler);
