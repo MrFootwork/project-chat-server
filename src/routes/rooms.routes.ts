@@ -7,7 +7,9 @@ const router = Router();
 // GET all rooms
 router.get('/', async (req, res, next) => {
   try {
-    const rooms = await prisma.room.findMany();
+    const rooms = await prisma.room.findMany({
+      include: { Users: { select: { userId: true } } },
+    });
     res.json(rooms);
   } catch (error) {
     next(error);
