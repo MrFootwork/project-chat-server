@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as auth from '../services/auth.service';
-import { cookieSet } from '../config/auth';
+import { cookieClear, cookieSet } from '../config/auth';
 import { User } from '@prisma/client';
 
 const router = Router();
@@ -48,6 +48,11 @@ router.post('/login', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+router.post('/logout', (_, res) => {
+  res.clearCookie('bearer', cookieClear);
+  res.status(200).json({ message: 'Succesfully logged out.' });
 });
 
 // router.get('/refresh-token', async (req, res, next) => {
