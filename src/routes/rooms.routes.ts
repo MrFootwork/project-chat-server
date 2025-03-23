@@ -5,10 +5,23 @@ import { RequestToken } from '../types/requests';
 const router = Router();
 
 // GET all rooms
-router.get('/', async (req, res, next) => {
+router.get('/all', async (req, res, next) => {
   try {
     const rooms = await prisma.room.findMany({
       include: { Users: { select: { userId: true } } },
+    });
+    res.json(rooms);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET all rooms of current user
+router.get('/', async (req: RequestToken, res, next) => {
+  try {
+    const rooms = await prisma.room.findMany({
+      where: { Users: { some: { userId: req.userId } } },
+      include: { Users: { select: { userId: true, isAdmin: true } } },
     });
     res.json(rooms);
   } catch (error) {
