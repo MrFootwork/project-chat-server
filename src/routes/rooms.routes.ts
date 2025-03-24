@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../db';
 import { RequestToken } from '../types/requests';
+import { formatPopulatedRooms } from '../services/rooms.service';
 
 const router = Router();
 
@@ -17,18 +18,22 @@ router.get('/all', async (req, res, next) => {
             },
           },
         },
+        Messages: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+            User: {
+              select: { id: true, name: true, avatarUrl: true },
+            },
+          },
+        },
       },
     });
 
-    // Format Users: { User: User }[] to be members: User[]
-    const formattedRooms = rooms.map(({ Users, ...room }) => ({
-      ...room,
-      members: Users.map(userRelation => ({
-        id: userRelation.User.id,
-        name: userRelation.User.name,
-        isAdmin: userRelation.isAdmin,
-      })),
-    }));
+    // Format Users: { User: User }[] to be members[]
+    const formattedRooms = formatPopulatedRooms(rooms);
 
     res.json(formattedRooms);
   } catch (error) {
@@ -45,23 +50,23 @@ router.get('/', async (req: RequestToken, res, next) => {
         Users: {
           select: {
             isAdmin: true,
-            User: {
-              select: { id: true, name: true, avatarUrl: true },
-            },
+            User: { select: { id: true, name: true, avatarUrl: true } },
+          },
+        },
+        Messages: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+            User: { select: { id: true, name: true, avatarUrl: true } },
           },
         },
       },
     });
 
-    // Format Users: { User: User }[] to be members: User[]
-    const formattedRooms = rooms.map(({ Users, ...room }) => ({
-      ...room,
-      members: Users.map(userRelation => ({
-        id: userRelation.User.id,
-        name: userRelation.User.name,
-        isAdmin: userRelation.isAdmin,
-      })),
-    }));
+    // Format Users: { User: User }[] to be members[]
+    const formattedRooms = formatPopulatedRooms(rooms);
 
     res.json(formattedRooms);
   } catch (error) {
