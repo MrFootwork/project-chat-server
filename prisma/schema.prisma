@@ -19,6 +19,7 @@ model User {
   name      String   @unique
   password  String
   avatarUrl String?
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -28,12 +29,11 @@ model User {
 }
 
 model Room {
-  id           String   @id @default(cuid())
-  name         String
-  private      Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  UsersHistory String[]
+  id        String   @id @default(cuid())
+  name      String
+  private   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   Messages Message[]
@@ -54,12 +54,13 @@ model Message {
   Room Room @relation(fields: [roomId], references: [id])
 }
 
-// // Join table for Admins
+// Join table for Admins
 model RoomConfig {
-  id      String  @id @default(cuid())
-  userId  String
-  roomId  String
-  isAdmin Boolean @default(false)
+  id       String  @id @default(cuid())
+  userId   String
+  roomId   String
+  isAdmin  Boolean @default(false)
+  userLeft Boolean @default(false)
 
   User User @relation(fields: [userId], references: [id])
   Room Room @relation(fields: [roomId], references: [id])

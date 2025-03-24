@@ -2,17 +2,19 @@ import { Router } from 'express';
 import prisma from '../db';
 import { RequestToken } from '../types/requests';
 import { formatPopulatedRooms } from '../services/rooms.service';
+import { PopulatedRoom } from '../types/rooms';
 
 const router = Router();
 
 // GET all rooms
 router.get('/all', async (req, res, next) => {
   try {
-    const rooms = await prisma.room.findMany({
+    const rooms = (await prisma.room.findMany({
       include: {
         Users: {
           select: {
             isAdmin: true,
+            userLeft: true,
             User: {
               select: { id: true, name: true, avatarUrl: true },
             },
@@ -30,7 +32,7 @@ router.get('/all', async (req, res, next) => {
           },
         },
       },
-    });
+    })) as unknown as PopulatedRoom[];
 
     // Format Users: { User: User }[] to be members[]
     const formattedRooms = formatPopulatedRooms(rooms);
@@ -44,12 +46,13 @@ router.get('/all', async (req, res, next) => {
 // GET all rooms of current user
 router.get('/', async (req: RequestToken, res, next) => {
   try {
-    const rooms = await prisma.room.findMany({
+    const rooms = (await prisma.room.findMany({
       where: { Users: { some: { userId: req.userId } } },
       include: {
         Users: {
           select: {
             isAdmin: true,
+            userLeft: true,
             User: { select: { id: true, name: true, avatarUrl: true } },
           },
         },
@@ -63,7 +66,7 @@ router.get('/', async (req: RequestToken, res, next) => {
           },
         },
       },
-    });
+    })) as unknown as PopulatedRoom[];
 
     // Format Users: { User: User }[] to be members[]
     const formattedRooms = formatPopulatedRooms(rooms);

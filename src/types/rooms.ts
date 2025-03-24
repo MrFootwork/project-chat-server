@@ -1,11 +1,12 @@
 export type PopulatedRoom = {
   id: string;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  private: boolean;
+  createdAt: string;
+  updatedAt: string;
+  isPrivate: boolean;
   Users: {
     isAdmin: boolean;
+    userLeft: boolean;
     User: {
       id: string;
       name: string;
@@ -14,13 +15,39 @@ export type PopulatedRoom = {
   }[];
   Messages: {
     id: string;
-    createdAt: Date;
-    updatedAt: Date;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
     User: {
       id: string;
       name: string;
       avatarUrl: string;
     };
+  }[];
+};
+
+export type FormattedRoom = {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  isPrivate: boolean;
+  members: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+    isAdmin: boolean;
+    userLeft: boolean;
+  }[];
+  messages: {
+    id: string;
     content: string;
+    createdAt: string;
+    updatedAt: string;
+    user: {
+      id: string;
+      name: string;
+      avatarUrl: string;
+    };
   }[];
 };
