@@ -8,9 +8,29 @@ const router = Router();
 router.get('/all', async (req, res, next) => {
   try {
     const rooms = await prisma.room.findMany({
-      include: { Users: { select: { userId: true } } },
+      include: {
+        Users: {
+          select: {
+            isAdmin: true,
+            User: {
+              select: { id: true, name: true, avatarUrl: true },
+            },
+          },
+        },
+      },
     });
-    res.json(rooms);
+
+    // Format Users: { User: User }[] to be members: User[]
+    const formattedRooms = rooms.map(({ Users, ...room }) => ({
+      ...room,
+      members: Users.map(userRelation => ({
+        id: userRelation.User.id,
+        name: userRelation.User.name,
+        isAdmin: userRelation.isAdmin,
+      })),
+    }));
+
+    res.json(formattedRooms);
   } catch (error) {
     next(error);
   }
@@ -21,9 +41,29 @@ router.get('/', async (req: RequestToken, res, next) => {
   try {
     const rooms = await prisma.room.findMany({
       where: { Users: { some: { userId: req.userId } } },
-      include: { Users: { select: { userId: true, isAdmin: true } } },
+      include: {
+        Users: {
+          select: {
+            isAdmin: true,
+            User: {
+              select: { id: true, name: true, avatarUrl: true },
+            },
+          },
+        },
+      },
     });
-    res.json(rooms);
+
+    // Format Users: { User: User }[] to be members: User[]
+    const formattedRooms = rooms.map(({ Users, ...room }) => ({
+      ...room,
+      members: Users.map(userRelation => ({
+        id: userRelation.User.id,
+        name: userRelation.User.name,
+        isAdmin: userRelation.isAdmin,
+      })),
+    }));
+
+    res.json(formattedRooms);
   } catch (error) {
     next(error);
   }
