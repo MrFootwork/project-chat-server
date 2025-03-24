@@ -61,11 +61,14 @@ export async function createJWTFromUser(user: User) {
 export async function getUserFromJWT(token: string) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    if (!decoded) throw new Error(`Cannot verify token: ${token}`);
+
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
     });
 
-    if (!user) return null;
+    if (!user)
+      throw new Error(`The token ${token} cannot be matched with any user.`);
 
     const { password, ...userWithoutPassword } = user;
 
