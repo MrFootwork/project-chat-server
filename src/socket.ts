@@ -1,11 +1,10 @@
 import { Express } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import {
-  connectionHandler,
-  extendSocketByUser,
-} from './services/socket.service';
 import { instrument } from '@socket.io/admin-ui';
+
+import connectionHandler from './routes/socket.routes';
+import { validateToken } from './services/socket.service';
 
 // https://socket.io/docs/v4/server-initialization/#with-express
 export default function socketServer(app: Express) {
@@ -23,9 +22,10 @@ export default function socketServer(app: Express) {
     },
   });
 
-  // Get user information from token and store in socket.data.user
-  io.use(extendSocketByUser);
+  // Get user information from token and store in socket.auth
+  io.use(validateToken);
 
+  // Create a socket connection between this server and a client
   io.on('connection', async socket => connectionHandler(socket, io));
 
   // Use the admin dashboard

@@ -1,17 +1,18 @@
-import { ExtendedError, Server, Socket } from 'socket.io';
+import { ExtendedError, Socket } from 'socket.io';
 import { getUserFromJWT } from './auth.service';
 
-export async function extendSocketByUser(
+export async function validateToken(
   socket: Socket,
   next: (err?: ExtendedError) => void
 ) {
   try {
     // Client uses auth, Postman uses headers
     const token = socket.handshake.auth.token || socket.handshake.headers.token;
-
-    if (!token) return;
+    if (!token) throw new Error('Provide a token!');
 
     const user = await getUserFromJWT(token);
+    if (!user) throw new Error('Token cannot be matched to a user.');
+
     socket.handshake.auth.user = user;
 
     next();
@@ -19,20 +20,4 @@ export async function extendSocketByUser(
     console.error(`Not authorized: ${error}`);
     next(error);
   }
-}
-
-export async function connectionHandler(socket: Socket, io: Server) {
-  const user = socket.handshake.auth.user;
-  console.log(`${socket.id} connected to ${user.name}`);
-
-  socket.on('send-message', message => {
-    console.log(`${user.name}: ${message}`);
-    socket.broadcast.emit('receive-message', user.name, message);
-  });
-
-  socket.on('disconnect', reason => {
-    console.log(
-      `${socket.id} disconnected from ${user.name}. Reason: ${reason}`
-    );
-  });
 }
