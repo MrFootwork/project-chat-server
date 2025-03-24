@@ -29,7 +29,7 @@ export default function socketServer(app: Express) {
   io.on('connection', async socket => connectionHandler(socket, io));
 
   // Use the admin dashboard
-  instrument(io, { auth: false });
+  instrument(io, { auth: false, mode: 'development' });
 
   return server;
 }
