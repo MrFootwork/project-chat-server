@@ -16,6 +16,7 @@ export type PopulatedRoom = {
   Messages: {
     id: string;
     content: string;
+    edited: boolean;
     createdAt: string;
     updatedAt: string;
     User: {
@@ -42,6 +43,7 @@ export type FormattedRoom = {
   messages: {
     id: string;
     content: string;
+    edited: boolean;
     createdAt: string;
     updatedAt: string;
     user: {

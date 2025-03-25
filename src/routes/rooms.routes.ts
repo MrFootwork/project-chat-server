@@ -60,6 +60,7 @@ router.get('/', async (req: RequestToken, res, next) => {
           select: {
             id: true,
             content: true,
+            edited: true,
             createdAt: true,
             updatedAt: true,
             User: { select: { id: true, name: true, avatarUrl: true } },

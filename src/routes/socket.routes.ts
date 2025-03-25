@@ -19,25 +19,37 @@ export default async function connectionHandler(socket: Socket, io: Server) {
       console.log(`${user.name} is already in the specified rooms.`);
     }
 
-    socket.on('send-message', async (roomID: string, message: string) => {
-      console.log(`${roomID} | ${user.name}: ${message}`);
+    socket.on('send-message', async (roomID: string, rawMessage: string) => {
+      console.log(`${roomID} | ${user.name}: ${rawMessage}`);
       if (!roomID) return;
-
-      // FIXME persist message to database
-      // And send messages after fetched from database
-      // To ensure messages to clients have complete data
 
       const newMessage = await prisma.message.create({
         data: {
-          content: message,
+          content: rawMessage,
           userId: user.id,
           roomId: roomID,
         },
+        include: {
+          User: { select: { id: true, name: true, avatarUrl: true } },
+        },
       });
 
-      console.log(`🚀 ~ socket.on ~ newMessage:`, newMessage);
+      // Reshape the response to include additional data
+      const reshapedMessage = {
+        id: newMessage.id,
+        content: newMessage.content,
+        edited: newMessage.edited,
+        createdAt: newMessage.createdAt,
+        updatedAt: newMessage.updatedAt,
+        user: {
+          id: newMessage.User.id,
+          name: newMessage.User.name,
+          avatarUrl: newMessage.User.avatarUrl || '',
+        },
+      };
 
-      socket.to(roomID).emit('receive-message', user.name, message);
+      // Emit the reshaped message to all room members, including the sender
+      io.to(roomID).emit('receive-message', user.name, reshapedMessage);
     });
   });
 
