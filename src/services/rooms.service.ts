@@ -1,4 +1,5 @@
 import { FormattedRoom, PopulatedRoom } from '../types/rooms';
+import { reshapeReadByField } from './users.service';
 
 /**
  * Transforms an array of populated room objects from the database into a more readable format.
@@ -21,7 +22,9 @@ export function formatPopulatedRooms(rooms: PopulatedRoom[]): FormattedRoom[] {
       members: Users.map(userRelation => ({
         id: userRelation.User.id,
         name: userRelation.User.name,
+        email: userRelation.User.email,
         avatarUrl: userRelation.User.avatarUrl || '',
+        isDeleted: userRelation.User.isDeleted,
         isAdmin: userRelation.isAdmin,
         userLeft: userRelation.userLeft,
       })),
@@ -29,14 +32,15 @@ export function formatPopulatedRooms(rooms: PopulatedRoom[]): FormattedRoom[] {
         id: message.id,
         content: message.content,
         edited: message.edited,
-        readBy: message.readBy,
+        readBy: reshapeReadByField(message.readBy),
         roomId: message.roomId,
         createdAt: message.createdAt,
         updatedAt: message.updatedAt,
-        user: {
+        author: {
           id: message.User.id,
           name: message.User.name,
           avatarUrl: message.User.avatarUrl || '',
+          isDeleted: message.User.isDeleted,
         },
       })),
     })

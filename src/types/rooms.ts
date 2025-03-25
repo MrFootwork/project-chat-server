@@ -1,3 +1,5 @@
+import { MessageAuthor, RoomMember, UserDB } from './users';
+
 export type PopulatedRoom = {
   id: string;
   name: string;
@@ -7,17 +9,13 @@ export type PopulatedRoom = {
   Users: {
     isAdmin: boolean;
     userLeft: boolean;
-    User: {
-      id: string;
-      name: string;
-      avatarUrl: string;
-    };
+    User: Omit<UserDB, 'password'>;
   }[];
   Messages: {
     id: string;
     content: string;
     edited: boolean;
-    readBy: string[];
+    readBy: UserDB[];
     roomId: string;
     createdAt: string;
     updatedAt: string;
@@ -25,6 +23,7 @@ export type PopulatedRoom = {
       id: string;
       name: string;
       avatarUrl: string;
+      isDeleted: boolean;
     };
   }[];
 };
@@ -35,25 +34,15 @@ export type FormattedRoom = {
   createdAt: string;
   updatedAt: string;
   isPrivate: boolean;
-  members: {
-    id: string;
-    name: string;
-    avatarUrl: string;
-    isAdmin: boolean;
-    userLeft: boolean;
-  }[];
+  members: RoomMember[];
   messages: {
     id: string;
     content: string;
     edited: boolean;
-    readBy: string[];
+    readBy: MessageAuthor[];
     roomId: string;
     createdAt: string;
     updatedAt: string;
-    user: {
-      id: string;
-      name: string;
-      avatarUrl: string;
-    };
+    author: MessageAuthor;
   }[];
 };

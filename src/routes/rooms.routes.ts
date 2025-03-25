@@ -12,9 +12,7 @@ const roomIncludePopulated = {
     select: {
       isAdmin: true,
       userLeft: true,
-      User: {
-        select: { id: true, name: true, avatarUrl: true },
-      },
+      User: { omit: { password: true } },
     },
   },
   Messages: {
@@ -27,7 +25,7 @@ const roomIncludePopulated = {
       createdAt: true,
       updatedAt: true,
       User: {
-        select: { id: true, name: true, avatarUrl: true },
+        select: { id: true, name: true, avatarUrl: true, isDeleted: true },
       },
     },
   },

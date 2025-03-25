@@ -1,5 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import prisma from '../db';
+import { UserDB } from '../types/users';
+import { reshapeReadByField } from '../services/users.service';
 
 export default async function connectionHandler(socket: Socket, io: Server) {
   const user = socket.handshake.auth.user;
@@ -28,28 +30,36 @@ export default async function connectionHandler(socket: Socket, io: Server) {
           content: rawMessage,
           userId: user.id,
           roomId: roomID,
-          readBy: { set: [user.id] },
+          readBy: { connect: { id: user.id } },
         },
         include: {
-          User: { select: { id: true, name: true, avatarUrl: true } },
+          readBy: true,
+          User: {
+            select: { id: true, name: true, avatarUrl: true, isDeleted: true },
+          },
         },
       });
+
+      console.log('NEW MESSAGE: ', newMessage);
 
       // Reshape the response to include additional data
       const reshapedMessage = {
         id: newMessage.id,
         content: newMessage.content,
         edited: newMessage.edited,
-        readBy: newMessage.readBy,
+        readBy: reshapeReadByField(newMessage.readBy),
         roomId: newMessage.roomId,
         createdAt: newMessage.createdAt,
         updatedAt: newMessage.updatedAt,
-        user: {
+        author: {
           id: newMessage.User.id,
           name: newMessage.User.name,
           avatarUrl: newMessage.User.avatarUrl || '',
+          isDeleted: newMessage.User.isDeleted,
         },
       };
+
+      console.log('RESHAPED MESSAGE: ', reshapedMessage);
 
       // Emit the reshaped message to all room members
       io.to(roomID).emit('receive-message', reshapedMessage);
