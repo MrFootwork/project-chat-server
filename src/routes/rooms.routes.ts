@@ -6,32 +6,35 @@ import { PopulatedRoom } from '../types/rooms';
 
 const router = Router();
 
+// Shared include object for Prisma queries
+const roomInclude = {
+  Users: {
+    select: {
+      isAdmin: true,
+      userLeft: true,
+      User: {
+        select: { id: true, name: true, avatarUrl: true },
+      },
+    },
+  },
+  Messages: {
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      updatedAt: true,
+      User: {
+        select: { id: true, name: true, avatarUrl: true },
+      },
+    },
+  },
+};
+
 // GET all rooms
 router.get('/all', async (req, res, next) => {
   try {
     const rooms = (await prisma.room.findMany({
-      include: {
-        Users: {
-          select: {
-            isAdmin: true,
-            userLeft: true,
-            User: {
-              select: { id: true, name: true, avatarUrl: true },
-            },
-          },
-        },
-        Messages: {
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            updatedAt: true,
-            User: {
-              select: { id: true, name: true, avatarUrl: true },
-            },
-          },
-        },
-      },
+      include: roomInclude,
     })) as unknown as PopulatedRoom[];
 
     // Format Users: { User: User }[] to be members[]
@@ -48,25 +51,7 @@ router.get('/', async (req: RequestToken, res, next) => {
   try {
     const rooms = (await prisma.room.findMany({
       where: { Users: { some: { userId: req.userId } } },
-      include: {
-        Users: {
-          select: {
-            isAdmin: true,
-            userLeft: true,
-            User: { select: { id: true, name: true, avatarUrl: true } },
-          },
-        },
-        Messages: {
-          select: {
-            id: true,
-            content: true,
-            edited: true,
-            createdAt: true,
-            updatedAt: true,
-            User: { select: { id: true, name: true, avatarUrl: true } },
-          },
-        },
-      },
+      include: roomInclude,
     })) as unknown as PopulatedRoom[];
 
     // Format Users: { User: User }[] to be members[]
