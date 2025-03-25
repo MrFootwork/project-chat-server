@@ -28,6 +28,7 @@ export default async function connectionHandler(socket: Socket, io: Server) {
           content: rawMessage,
           userId: user.id,
           roomId: roomID,
+          readBy: { set: [user.id] },
         },
         include: {
           User: { select: { id: true, name: true, avatarUrl: true } },
