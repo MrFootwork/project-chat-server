@@ -28,6 +28,7 @@ export function formatPopulatedRooms(rooms: PopulatedRoom[]): FormattedRoom[] {
       messages: Messages.map(message => ({
         id: message.id,
         content: message.content,
+        edited: message.edited,
         createdAt: message.createdAt,
         updatedAt: message.updatedAt,
         user: {

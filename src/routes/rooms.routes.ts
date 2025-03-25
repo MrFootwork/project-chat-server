@@ -7,7 +7,7 @@ import { PopulatedRoom } from '../types/rooms';
 const router = Router();
 
 // Shared include object for Prisma queries
-const roomInclude = {
+const roomIncludePopulated = {
   Users: {
     select: {
       isAdmin: true,
@@ -21,6 +21,7 @@ const roomInclude = {
     select: {
       id: true,
       content: true,
+      edited: true,
       createdAt: true,
       updatedAt: true,
       User: {
@@ -34,7 +35,7 @@ const roomInclude = {
 router.get('/all', async (req, res, next) => {
   try {
     const rooms = (await prisma.room.findMany({
-      include: roomInclude,
+      include: roomIncludePopulated,
     })) as unknown as PopulatedRoom[];
 
     // Format Users: { User: User }[] to be members[]
@@ -51,7 +52,7 @@ router.get('/', async (req: RequestToken, res, next) => {
   try {
     const rooms = (await prisma.room.findMany({
       where: { Users: { some: { userId: req.userId } } },
-      include: roomInclude,
+      include: roomIncludePopulated,
     })) as unknown as PopulatedRoom[];
 
     // Format Users: { User: User }[] to be members[]
@@ -67,11 +68,15 @@ router.get('/', async (req: RequestToken, res, next) => {
 router.get('/:roomId', async (req, res, next) => {
   try {
     const { roomId } = req.params;
-    const room = await prisma.room.findUnique({
-      where: { id: roomId },
-    });
 
-    res.json(room);
+    const room = (await prisma.room.findUnique({
+      where: { id: roomId },
+      include: roomIncludePopulated,
+    })) as unknown as PopulatedRoom;
+
+    const formattedRoom = formatPopulatedRooms([room])[0];
+
+    res.json(formattedRoom);
   } catch (error) {
     next(error);
   }
