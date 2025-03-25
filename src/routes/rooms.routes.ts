@@ -21,7 +21,9 @@ const roomIncludePopulated = {
     select: {
       id: true,
       content: true,
+      roomId: true,
       edited: true,
+      readBy: true,
       createdAt: true,
       updatedAt: true,
       User: {

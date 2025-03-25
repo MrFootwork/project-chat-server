@@ -17,6 +17,8 @@ export type PopulatedRoom = {
     id: string;
     content: string;
     edited: boolean;
+    readBy: string[];
+    roomId: string;
     createdAt: string;
     updatedAt: string;
     User: {
@@ -44,6 +46,8 @@ export type FormattedRoom = {
     id: string;
     content: string;
     edited: boolean;
+    readBy: string[];
+    roomId: string;
     createdAt: string;
     updatedAt: string;
     user: {

@@ -29,6 +29,8 @@ export function formatPopulatedRooms(rooms: PopulatedRoom[]): FormattedRoom[] {
         id: message.id,
         content: message.content,
         edited: message.edited,
+        readBy: message.readBy,
+        roomId: message.roomId,
         createdAt: message.createdAt,
         updatedAt: message.updatedAt,
         user: {

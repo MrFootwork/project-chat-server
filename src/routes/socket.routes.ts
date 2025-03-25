@@ -39,6 +39,8 @@ export default async function connectionHandler(socket: Socket, io: Server) {
         id: newMessage.id,
         content: newMessage.content,
         edited: newMessage.edited,
+        readBy: newMessage.readBy,
+        roomId: newMessage.roomId,
         createdAt: newMessage.createdAt,
         updatedAt: newMessage.updatedAt,
         user: {
@@ -48,8 +50,8 @@ export default async function connectionHandler(socket: Socket, io: Server) {
         },
       };
 
-      // Emit the reshaped message to all room members, including the sender
-      io.to(roomID).emit('receive-message', user.name, reshapedMessage);
+      // Emit the reshaped message to all room members
+      io.to(roomID).emit('receive-message', reshapedMessage);
     });
   });
 
