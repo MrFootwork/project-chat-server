@@ -63,14 +63,13 @@ export async function getUserFromJWT(token: string) {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     if (!decoded) throw new Error(`Cannot verify token: ${token}`);
 
-    const user = await prisma.user.findUnique({
+    const userWithoutPassword = await prisma.user.findUnique({
       where: { id: decoded.id },
+      omit: { password: true },
     });
 
-    if (!user)
+    if (!userWithoutPassword)
       throw new Error(`The token ${token} cannot be matched with any user.`);
-
-    const { password, ...userWithoutPassword } = user;
 
     return userWithoutPassword;
   } catch (error) {

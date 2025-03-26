@@ -8,8 +8,9 @@ const router = Router();
 // GET all users
 router.get('/', async (req, res, next) => {
   try {
-    // TODO return only users without passwords
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      omit: { password: true },
+    });
     res.json(users);
   } catch (error) {
     next(error);

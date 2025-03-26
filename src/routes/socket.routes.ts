@@ -1,6 +1,5 @@
 import { Server, Socket } from 'socket.io';
 import prisma from '../db';
-import { UserDB } from '../types/users';
 import { reshapeReadByField } from '../services/users.service';
 
 export default async function connectionHandler(socket: Socket, io: Server) {
