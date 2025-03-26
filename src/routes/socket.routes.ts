@@ -40,8 +40,6 @@ export default async function connectionHandler(socket: Socket, io: Server) {
         },
       });
 
-      console.log('NEW MESSAGE: ', newMessage);
-
       // Reshape the response to include additional data
       const reshapedMessage = {
         id: newMessage.id,
@@ -58,8 +56,6 @@ export default async function connectionHandler(socket: Socket, io: Server) {
           isDeleted: newMessage.User.isDeleted,
         },
       };
-
-      console.log('RESHAPED MESSAGE: ', reshapedMessage);
 
       // Emit the reshaped message to all room members
       io.to(roomID).emit('receive-message', reshapedMessage);

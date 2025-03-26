@@ -85,11 +85,12 @@ router.get('/:roomId', async (req, res, next) => {
 // POST Create a new room
 router.post('/', async (req: RequestToken, res, next) => {
   try {
-    const { name } = req.body;
+    const { name, id } = req.body;
     const userId = req.userId;
 
     const newRoom = await prisma.room.create({
       data: {
+        id: id,
         name: name,
         Users: {
           create: {
@@ -103,6 +104,44 @@ router.post('/', async (req: RequestToken, res, next) => {
     });
 
     res.status(200).json(newRoom);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT set all messages of a room as read by a user
+router.put('/:roomId/read', async (req: RequestToken, res, next) => {
+  // res.json({ message: 'Not implemented' });
+  // return;
+
+  try {
+    const { roomId } = req.params;
+    const userId = req.userId;
+
+    // Fetch all messages in the room that the user hasn't read yet
+    const messages = await prisma.message.findMany({
+      where: {
+        roomId,
+        NOT: { readBy: { some: { id: userId } } },
+      },
+      include: { readBy: true },
+    });
+
+    // Update each message to add the user to the readBy field
+    for (const message of messages) {
+      await prisma.message.update({
+        where: { id: message.id },
+        data: {
+          readBy: {
+            connect: { id: userId },
+          },
+        },
+      });
+    }
+
+    res.json({
+      message: `Marked ${messages.length} messages as read by user ${userId}`,
+    });
   } catch (error) {
     next(error);
   }
