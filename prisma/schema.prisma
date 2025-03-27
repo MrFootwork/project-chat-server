@@ -24,9 +24,9 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  Messages Message[]    @relation("UserMessages")
-  Roles    RoomConfig[]
-  readBy   Message[]    @relation("MessageReadBy")
+  Messages     Message[]    @relation("UserMessages")
+  Roles        RoomConfig[]
+  ReadMessages Message[]    @relation("MessageReadBy")
 }
 
 model Room {
@@ -51,9 +51,9 @@ model Message {
   updatedAt DateTime @updatedAt
 
   // Relations
-  User   User   @relation("UserMessages", fields: [userId], references: [id])
-  Room   Room   @relation(fields: [roomId], references: [id])
-  readBy User[] @relation("MessageReadBy")
+  User    User   @relation("UserMessages", fields: [userId], references: [id])
+  Room    Room   @relation(fields: [roomId], references: [id])
+  Readers User[] @relation("MessageReadBy")
 }
 
 // Join table for Admins

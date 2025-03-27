@@ -1,6 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import prisma from '../db';
-import { reshapeReadByField } from '../services/users.service';
+import { reshapeReaders } from '../services/users.service';
+import { formatPopulatedMessage } from '../services/rooms.service';
+import { MessageDB } from '../types/messages';
 
 export default async function connectionHandler(socket: Socket, io: Server) {
   const user = socket.handshake.auth.user;
@@ -29,32 +31,20 @@ export default async function connectionHandler(socket: Socket, io: Server) {
           content: rawMessage,
           userId: user.id,
           roomId: roomID,
-          readBy: { connect: { id: user.id } },
+          Readers: { connect: { id: user.id } },
         },
         include: {
-          readBy: true,
+          Readers: true,
           User: {
             select: { id: true, name: true, avatarUrl: true, isDeleted: true },
           },
         },
       });
 
-      // Reshape the response to include additional data
-      const reshapedMessage = {
-        id: newMessage.id,
-        content: newMessage.content,
-        edited: newMessage.edited,
-        readBy: reshapeReadByField(newMessage.readBy),
-        roomId: newMessage.roomId,
-        createdAt: newMessage.createdAt,
-        updatedAt: newMessage.updatedAt,
-        author: {
-          id: newMessage.User.id,
-          name: newMessage.User.name,
-          avatarUrl: newMessage.User.avatarUrl || '',
-          isDeleted: newMessage.User.isDeleted,
-        },
-      };
+      const reshapedMessage = formatPopulatedMessage(
+        newMessage
+        // newMessage as unknown as MessageDB
+      );
 
       // Emit the reshaped message to all room members
       io.to(roomID).emit('receive-message', reshapedMessage);

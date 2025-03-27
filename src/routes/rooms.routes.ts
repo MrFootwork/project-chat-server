@@ -2,7 +2,7 @@ import { Router } from 'express';
 import prisma from '../db';
 import { RequestToken } from '../types/requests';
 import { formatPopulatedRooms } from '../services/rooms.service';
-import { PopulatedRoom } from '../types/rooms';
+import { RoomDB } from '../types/rooms';
 
 const router = Router();
 
@@ -21,7 +21,7 @@ const roomIncludePopulated = {
       content: true,
       roomId: true,
       edited: true,
-      readBy: true,
+      Readers: true,
       createdAt: true,
       updatedAt: true,
       User: {
@@ -36,7 +36,7 @@ router.get('/all', async (req, res, next) => {
   try {
     const rooms = (await prisma.room.findMany({
       include: roomIncludePopulated,
-    })) as unknown as PopulatedRoom[];
+    })) as unknown as RoomDB[];
 
     // Format Users: { User: User }[] to be members[]
     const formattedRooms = formatPopulatedRooms(rooms);
@@ -53,7 +53,7 @@ router.get('/', async (req: RequestToken, res, next) => {
     const rooms = (await prisma.room.findMany({
       where: { Users: { some: { userId: req.userId } } },
       include: roomIncludePopulated,
-    })) as unknown as PopulatedRoom[];
+    })) as unknown as RoomDB[];
 
     // Format Users: { User: User }[] to be members[]
     const formattedRooms = formatPopulatedRooms(rooms);
@@ -72,7 +72,7 @@ router.get('/:roomId', async (req, res, next) => {
     const room = (await prisma.room.findUnique({
       where: { id: roomId },
       include: roomIncludePopulated,
-    })) as unknown as PopulatedRoom;
+    })) as unknown as RoomDB;
 
     const formattedRoom = formatPopulatedRooms([room])[0];
 
@@ -111,9 +111,6 @@ router.post('/', async (req: RequestToken, res, next) => {
 
 // PUT set all messages of a room as read by a user
 router.put('/:roomId/read', async (req: RequestToken, res, next) => {
-  // res.json({ message: 'Not implemented' });
-  // return;
-
   try {
     const { roomId } = req.params;
     const userId = req.userId;
@@ -122,17 +119,17 @@ router.put('/:roomId/read', async (req: RequestToken, res, next) => {
     const messages = await prisma.message.findMany({
       where: {
         roomId,
-        NOT: { readBy: { some: { id: userId } } },
+        NOT: { Readers: { some: { id: userId } } },
       },
-      include: { readBy: true },
+      include: { Readers: true },
     });
 
-    // Update each message to add the user to the readBy field
+    // Update each message to add the user to the Readers field
     for (const message of messages) {
       await prisma.message.update({
         where: { id: message.id },
         data: {
-          readBy: {
+          Readers: {
             connect: { id: userId },
           },
         },

@@ -1,48 +1,26 @@
-import { MessageAuthor, RoomMember, UserDB } from './users';
+import { MessageDB, MessageFormatted } from './messages';
+import { RoomMember, UserDB } from './users';
 
-export type PopulatedRoom = {
+export type RoomDB = {
   id: string;
   name: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   isPrivate: boolean;
   Users: {
     isAdmin: boolean;
     userLeft: boolean;
     User: Omit<UserDB, 'password'>;
   }[];
-  Messages: {
-    id: string;
-    content: string;
-    edited: boolean;
-    readBy: UserDB[];
-    roomId: string;
-    createdAt: string;
-    updatedAt: string;
-    User: {
-      id: string;
-      name: string;
-      avatarUrl: string;
-      isDeleted: boolean;
-    };
-  }[];
+  Messages: MessageDB[];
 };
 
-export type FormattedRoom = {
+export type RoomFormatted = {
   id: string;
   name: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   isPrivate: boolean;
   members: RoomMember[];
-  messages: {
-    id: string;
-    content: string;
-    edited: boolean;
-    readBy: MessageAuthor[];
-    roomId: string;
-    createdAt: string;
-    updatedAt: string;
-    author: MessageAuthor;
-  }[];
+  messages: MessageFormatted[];
 };
