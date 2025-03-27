@@ -1,8 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import prisma from '../db';
-import { reshapeReaders } from '../services/users.service';
 import { formatPopulatedMessage } from '../services/rooms.service';
-import { MessageDB } from '../types/messages';
 
 export default async function connectionHandler(socket: Socket, io: Server) {
   const user = socket.handshake.auth.user;

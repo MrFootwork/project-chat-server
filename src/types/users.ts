@@ -2,7 +2,7 @@ export type UserDB = {
   id: string;
   name: string;
   email: string;
-  password: string;
+  password: string; //FIXME Default to never fetch user passwords
   avatarUrl: string | null;
   isDeleted: boolean;
   createdAt: Date;

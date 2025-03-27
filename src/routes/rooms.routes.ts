@@ -6,8 +6,9 @@ import { RoomDB } from '../types/rooms';
 
 const router = Router();
 
+// FIXME Add correct typing in combination with Sorted DB Responses
 // Shared include object for Prisma queries
-const roomIncludePopulated = {
+const roomIncludePopulated: any = {
   Users: {
     select: {
       isAdmin: true,
@@ -25,15 +26,22 @@ const roomIncludePopulated = {
       createdAt: true,
       updatedAt: true,
       User: {
-        select: { id: true, name: true, avatarUrl: true, isDeleted: true },
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+          isDeleted: true,
+        },
       },
     },
+    orderBy: { createdAt: 'asc' },
   },
 };
 
 // GET all rooms
 router.get('/all', async (req, res, next) => {
   try {
+    // FIXME Check if types are still correct after change of prisma include
     const rooms = (await prisma.room.findMany({
       include: roomIncludePopulated,
     })) as unknown as RoomDB[];
@@ -47,17 +55,17 @@ router.get('/all', async (req, res, next) => {
   }
 });
 
-// GET all rooms of current user
+// GET all rooms of logged in user
 router.get('/', async (req: RequestToken, res, next) => {
   try {
-    const rooms = (await prisma.room.findMany({
+    const rooms = await prisma.room.findMany({
       where: { Users: { some: { userId: req.userId } } },
       include: roomIncludePopulated,
-    })) as unknown as RoomDB[];
+    });
 
     // Format Users: { User: User }[] to be members[]
-    const formattedRooms = formatPopulatedRooms(rooms);
-
+    const formattedRooms = formatPopulatedRooms(rooms as unknown as RoomDB[]);
+    console.log(formattedRooms[0].messages);
     res.json(formattedRooms);
   } catch (error) {
     next(error);
@@ -69,6 +77,7 @@ router.get('/:roomId', async (req, res, next) => {
   try {
     const { roomId } = req.params;
 
+    // FIXME Check if types are still correct after change of prisma include
     const room = (await prisma.room.findUnique({
       where: { id: roomId },
       include: roomIncludePopulated,
