@@ -1,14 +1,17 @@
 import { Router } from 'express';
 import prisma from '../db';
+import { Prisma } from '@prisma/client';
 import { RequestToken } from '../types/requests';
 import { formatPopulatedRooms } from '../services/rooms.service';
 import { RoomDB } from '../types/rooms';
+import { UserDB } from '../types/users';
 
 const router = Router();
 
 // FIXME Add correct typing in combination with Sorted DB Responses
 // Shared include object for Prisma queries
-const roomIncludePopulated: any = {
+const roomIncludePopulated = <Prisma.RoomInclude>{
+  // Room Members
   Users: {
     select: {
       isAdmin: true,
@@ -22,9 +25,7 @@ const roomIncludePopulated: any = {
       content: true,
       roomId: true,
       edited: true,
-      Readers: true,
-      createdAt: true,
-      updatedAt: true,
+      // Messages Author
       User: {
         select: {
           id: true,
@@ -33,6 +34,17 @@ const roomIncludePopulated: any = {
           isDeleted: true,
         },
       },
+      // Readers of the message
+      Readers: {
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+          isDeleted: true,
+        },
+      },
+      createdAt: true,
+      updatedAt: true,
     },
     orderBy: { createdAt: 'asc' },
   },
@@ -42,11 +54,10 @@ const roomIncludePopulated: any = {
 router.get('/all', async (req, res, next) => {
   try {
     // FIXME Check if types are still correct after change of prisma include
-    const rooms = (await prisma.room.findMany({
+    const rooms = await prisma.room.findMany({
       include: roomIncludePopulated,
-    })) as unknown as RoomDB[];
+    });
 
-    // Format Users: { User: User }[] to be members[]
     const formattedRooms = formatPopulatedRooms(rooms);
 
     res.json(formattedRooms);
@@ -63,9 +74,8 @@ router.get('/', async (req: RequestToken, res, next) => {
       include: roomIncludePopulated,
     });
 
-    // Format Users: { User: User }[] to be members[]
-    const formattedRooms = formatPopulatedRooms(rooms as unknown as RoomDB[]);
-    console.log(formattedRooms[0].messages);
+    const formattedRooms = formatPopulatedRooms(rooms);
+
     res.json(formattedRooms);
   } catch (error) {
     next(error);
@@ -78,10 +88,10 @@ router.get('/:roomId', async (req, res, next) => {
     const { roomId } = req.params;
 
     // FIXME Check if types are still correct after change of prisma include
-    const room = (await prisma.room.findUnique({
+    const room = await prisma.room.findUnique({
       where: { id: roomId },
       include: roomIncludePopulated,
-    })) as unknown as RoomDB;
+    });
 
     const formattedRoom = formatPopulatedRooms([room])[0];
 
@@ -160,9 +170,9 @@ router.put('/:roomId', async (req, res, next) => {
     const { name: newRoomName, private: isPrivate } = req.body;
 
     // Construct the data object dynamically based on provided fields
-    const data: { name?: string; private?: boolean } = {};
+    const data: Prisma.RoomUpdateInput = {};
     if (newRoomName !== undefined) data.name = newRoomName;
-    if (isPrivate !== undefined) data.private = isPrivate;
+    if (isPrivate !== undefined) data.isPrivate = isPrivate;
 
     // Ensure at least one field is being updated
     const updatedRoom = await prisma.room.update({

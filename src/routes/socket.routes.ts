@@ -39,10 +39,7 @@ export default async function connectionHandler(socket: Socket, io: Server) {
         },
       });
 
-      const reshapedMessage = formatPopulatedMessage(
-        newMessage
-        // newMessage as unknown as MessageDB
-      );
+      const reshapedMessage = formatPopulatedMessage(newMessage);
 
       // Emit the reshaped message to all room members
       io.to(roomID).emit('receive-message', reshapedMessage);

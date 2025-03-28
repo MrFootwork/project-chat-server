@@ -20,7 +20,7 @@ router.post('/login', async (req, res, next) => {
     const body = req.body;
 
     // Validate and narrow down req.body
-    if (!isLoginWithName(body) && !isLoginWithEmail(body)) {
+    if (!usingName(body) && !usingEmail(body)) {
       res.status(400).json({
         error: 'Invalid input',
         message: 'Either name or email must be provided along with a password.',
@@ -30,8 +30,8 @@ router.post('/login', async (req, res, next) => {
 
     // Check if user exists
     let user: User;
-    if (isLoginWithName(body)) user = await auth.getUserByName(body.name);
-    if (isLoginWithEmail(body)) user = await auth.getUserByEmail(body.email);
+    if (usingName(body)) user = await auth.getUserByName(body.name);
+    if (usingEmail(body)) user = await auth.getUserByEmail(body.email);
     if (!user) throw Error(`NoUserError`);
 
     // Check if password matches
@@ -76,16 +76,12 @@ router.post('/logout', (_, res) => {
 // });
 
 // Type guard to check if req.body is InputUserLogin with name
-function isLoginWithName(
-  body: any
-): body is { name: string; password: string } {
+function usingName(body: any): body is { name: string; password: string } {
   return typeof body.name === 'string' && typeof body.password === 'string';
 }
 
 // Type guard to check if req.body is InputUserLogin with email
-function isLoginWithEmail(
-  body: any
-): body is { email: string; password: string } {
+function usingEmail(body: any): body is { email: string; password: string } {
   return typeof body.email === 'string' && typeof body.password === 'string';
 }
 

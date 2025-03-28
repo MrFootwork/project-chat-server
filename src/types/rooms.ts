@@ -10,7 +10,10 @@ export type RoomDB = {
   Users: {
     isAdmin: boolean;
     userLeft: boolean;
-    User: Omit<UserDB, 'password'>;
+    User?: Omit<UserDB, 'password'>;
+    id: string;
+    userId: string;
+    roomId: string;
   }[];
   Messages: MessageDB[];
 };

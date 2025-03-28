@@ -1,14 +1,15 @@
-import { MessageAuthor, UserDB } from './users';
+import { MessageAuthor } from './users';
 
 export type MessageDB = {
   id: string;
   content: string;
   edited: boolean;
-  Readers: UserDB[];
+  userId: string;
   roomId: string;
   createdAt: Date;
   updatedAt: Date;
-  User: MessageAuthor;
+  Readers?: MessageAuthor[];
+  User?: MessageAuthor;
 };
 
 export type MessageFormatted = {

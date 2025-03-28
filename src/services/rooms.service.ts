@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { MessageDB, MessageFormatted } from '../types/messages';
 import { RoomFormatted, RoomDB } from '../types/rooms';
 import { reshapeReaders } from './users.service';
@@ -9,10 +10,13 @@ import { reshapeReaders } from './users.service';
  * - Members are derived from the `Users` relation and include user details such as ID, name, avatar URL, and admin status.
  * - Messages are derived from the `Messages` relation and include message details such as ID, content, timestamps, and the associated user.
  *
- * @param {RoomDB[]} rooms - An array of populated room objects retrieved from the database.
+ * @param {Awaited<Prisma.PrismaPromise<RoomDB[]>>} rooms - An array of populated room objects retrieved from the database.
  * @returns {RoomFormatted[]} An array of formatted room objects with simplified structure.
  */
-export function formatPopulatedRooms(rooms: RoomDB[]): RoomFormatted[] {
+// export function formatPopulatedRooms(rooms: RoomDB[]): RoomFormatted[] {
+export function formatPopulatedRooms(
+  rooms: Awaited<Prisma.PrismaPromise<RoomDB[]>>
+): RoomFormatted[] {
   return rooms.map(
     ({ Users, Messages, id, name, createdAt, updatedAt, isPrivate }) => ({
       id,
@@ -42,10 +46,12 @@ export function formatPopulatedRooms(rooms: RoomDB[]): RoomFormatted[] {
  * - Author details include user ID, name, avatar URL, and deletion status.
  * - Readers are reshaped using the `reshapeReaders` utility function.
  *
- * @param {MessageDB} message - A populated message object retrieved from the database.
+ * @param {Awaited<Prisma.PrismaPromise<MessageDB>>} message - A populated message object retrieved from the database.
  * @returns {MessageFormatted} A formatted message object with a simplified structure.
  */
-export function formatPopulatedMessage(message: MessageDB): MessageFormatted {
+export function formatPopulatedMessage(
+  message: Awaited<Prisma.PrismaPromise<MessageDB>>
+): MessageFormatted {
   return {
     id: message.id,
     content: message.content,

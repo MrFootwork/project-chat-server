@@ -42,7 +42,7 @@ router.delete('/:userId', async (req, res, next) => {
       where: { id: userId },
     });
 
-    res.json(users);
+    res.json({ message: 'User deleted successfully', data: users });
   } catch (error) {
     next(error);
   }
