@@ -43,6 +43,8 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
       // Emit the reshaped message to all room members
       io.to(roomID).emit('receive-message', reshapedMessage);
+
+      // FIXME Add a listener for "writing message"
     });
   });
 

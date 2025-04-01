@@ -8,7 +8,6 @@ import { UserDB } from '../types/users';
 
 const router = Router();
 
-// FIXME Add correct typing in combination with Sorted DB Responses
 // Shared include object for Prisma queries
 const roomIncludePopulated = <Prisma.RoomInclude>{
   // Room Members
@@ -53,7 +52,6 @@ const roomIncludePopulated = <Prisma.RoomInclude>{
 // GET all rooms
 router.get('/all', async (req, res, next) => {
   try {
-    // FIXME Check if types are still correct after change of prisma include
     const rooms = await prisma.room.findMany({
       include: roomIncludePopulated,
     });
@@ -87,7 +85,6 @@ router.get('/:roomId', async (req, res, next) => {
   try {
     const { roomId } = req.params;
 
-    // FIXME Check if types are still correct after change of prisma include
     const room = await prisma.room.findUnique({
       where: { id: roomId },
       include: roomIncludePopulated,
