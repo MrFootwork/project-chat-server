@@ -188,15 +188,14 @@ router.delete('/:roomId', async (req, res, next) => {
   try {
     const { roomId } = req.params;
 
+    // Delete all messages in the room
+    await prisma.message.deleteMany({ where: { roomId } });
+
     // Delete related entries in the join table (e.g., RoomConfig)
-    await prisma.roomConfig.deleteMany({
-      where: { roomId },
-    });
+    await prisma.roomConfig.deleteMany({ where: { roomId } });
 
     // Delete the room
-    const deletedRoom = await prisma.room.delete({
-      where: { id: roomId },
-    });
+    const deletedRoom = await prisma.room.delete({ where: { id: roomId } });
 
     res.json(deletedRoom);
   } catch (error) {
