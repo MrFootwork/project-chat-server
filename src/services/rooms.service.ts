@@ -28,7 +28,7 @@ export function formatPopulatedRooms(
         id: userRelation.User.id,
         name: userRelation.User.name,
         email: userRelation.User.email,
-        avatarUrl: userRelation.User.avatarUrl || '',
+        avatarUrl: userRelation.User.avatarUrl,
         isDeleted: userRelation.User.isDeleted,
         isAdmin: userRelation.isAdmin,
         userLeft: userRelation.userLeft,
@@ -63,7 +63,7 @@ export function formatPopulatedMessage(
     author: {
       id: message.User.id,
       name: message.User.name,
-      avatarUrl: message.User.avatarUrl || '',
+      avatarUrl: message.User.avatarUrl,
       isDeleted: message.User.isDeleted,
     },
   };

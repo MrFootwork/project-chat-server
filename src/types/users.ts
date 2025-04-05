@@ -13,7 +13,6 @@ export type RoomMember = Omit<
   UserDB,
   'password' | 'createdAt' | 'updatedAt'
 > & {
-  avatarUrl: string;
   isAdmin: boolean;
   userLeft: boolean;
 };

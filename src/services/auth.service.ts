@@ -1,4 +1,4 @@
-import { InputUserLogin, InputUserSignup, JwtPayload } from '../types/auth';
+import { InputUserSignup, JwtPayload } from '../types/auth';
 import * as bcrypt from 'bcrypt';
 import prisma from '../db';
 import jwt from 'jsonwebtoken';
@@ -9,7 +9,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export async function createUser(user: InputUserSignup) {
   try {
     user = hashUserPassword(user);
-    // await User.create(user);
     await prisma.user.create({ data: user });
     return;
   } catch (error) {

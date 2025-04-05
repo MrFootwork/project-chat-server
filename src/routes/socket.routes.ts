@@ -7,6 +7,7 @@ export default async function connectionHandler(socket: Socket, io: Server) {
   console.log(`${socket.id} connected to "${user.name}" ${user.id}`);
 
   socket.on('join-room', (roomIDs: string[]) => {
+    // FIXME validate and handle roomIDs: string[]
     // Filter out rooms that the socket is already in
     const roomsToJoin = roomIDs.filter(roomID => {
       const room = io.sockets.adapter.rooms.get(roomID);
