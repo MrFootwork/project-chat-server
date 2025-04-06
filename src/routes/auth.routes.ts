@@ -18,6 +18,7 @@ router.post('/signup', async (req, res, next) => {
 router.post('/login', async (req, res, next) => {
   try {
     const body = req.body;
+    console.log(`🚀 ~ LOGIN ~ body:`, body);
 
     // Validate and narrow down req.body
     if (!usingName(body) && !usingEmail(body)) {
@@ -34,11 +35,15 @@ router.post('/login', async (req, res, next) => {
     if (usingEmail(body)) user = await auth.getUserByEmail(body.email);
     if (!user) throw Error(`NoUserError`);
 
+    console.log(`🚀 ~ router.post ~ user:`, user);
+
     // Check if password matches
     const userPasswordMatches = await auth.checkPasswordMatch(
       body.password,
       user.id
     );
+
+    console.log(`🚀 ~ router.post ~ userPasswordMatches:`, userPasswordMatches);
     if (!userPasswordMatches) throw Error(`WrongPasswordError`);
 
     // Create and respond with JWT
@@ -77,11 +82,23 @@ router.post('/logout', (_, res) => {
 
 // Type guard to check if req.body is InputUserLogin with name
 function usingName(body: any): body is { name: string; password: string } {
+  console.log(
+    `🚀 ~ usingName ~ body.name/password:`,
+    body.name,
+    body.password,
+    typeof body.name === 'string' && typeof body.password === 'string'
+  );
   return typeof body.name === 'string' && typeof body.password === 'string';
 }
 
 // Type guard to check if req.body is InputUserLogin with email
 function usingEmail(body: any): body is { email: string; password: string } {
+  console.log(
+    `🚀 ~ usingName ~ body.email/password:`,
+    body.email,
+    body.password,
+    typeof body.email === 'string' && typeof body.password === 'string'
+  );
   return typeof body.email === 'string' && typeof body.password === 'string';
 }
 
