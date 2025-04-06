@@ -26,6 +26,7 @@ export async function getUserByName(userName: string) {
     throw error;
   }
 }
+
 export async function getUserByEmail(userEmail: string) {
   try {
     const user = await prisma.user.findUnique({
