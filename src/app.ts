@@ -4,6 +4,7 @@ import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
 import usersRoutes from './routes/users.routes';
 import roomsRoutes from './routes/rooms.routes';
+import messagesRoutes from './routes/messages.routes';
 
 import authMiddleware from './middlewares/auth';
 import isProtected from './middlewares/protected';
@@ -25,6 +26,7 @@ app.use(authMiddleware);
 // Routes
 app.use('/api/users', isProtected, usersRoutes);
 app.use('/api/rooms', isProtected, roomsRoutes);
+app.use('/api/messages', isProtected, messagesRoutes);
 app.use('/auth', authRoutes);
 app.use(healthRoutes);
 
