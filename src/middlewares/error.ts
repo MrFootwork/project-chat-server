@@ -36,8 +36,19 @@ export const errorHandler = (
 
   // Handle Prisma-specific errors
   if (err instanceof PrismaClientKnownRequestError) {
+    if (err.code === 'P2025' && err.meta.modelName === 'User') {
+      const friendIDMatch = req.path.match(/\/friends\/([^/]+)/);
+      const friendID = friendIDMatch ? friendIDMatch[1] : null;
+
+      res.status(404).json({
+        error: 'user_not_found',
+        message: `The user (friend) with the specified ID '${friendID}' does not exist. 🤷🏻`,
+      });
+
+      return;
+    }
+
     if (err.code === 'P2002') {
-      // Handle unique constraint violation
       res.status(409).json({
         error: 'duplicate_record',
         message: `A record with the specified ${

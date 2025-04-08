@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import * as auth from '../services/auth.service';
-import { cookieClear, cookieSet } from '../config/auth';
 import { User } from '@prisma/client';
+
+import { cookieClear, cookieSet } from '../config/auth';
+import * as auth from '../services/auth.service';
 
 const router = Router();
 
@@ -78,23 +79,11 @@ router.post('/logout', (_, res) => {
 
 // Type guard to check if req.body is InputUserLogin with name
 function usingName(body: any): body is { name: string; password: string } {
-  console.log(
-    `🚀 ~ usingName ~ body.name/password:`,
-    body.name,
-    body.password,
-    typeof body.name === 'string' && typeof body.password === 'string'
-  );
   return typeof body.name === 'string' && typeof body.password === 'string';
 }
 
 // Type guard to check if req.body is InputUserLogin with email
 function usingEmail(body: any): body is { email: string; password: string } {
-  console.log(
-    `🚀 ~ usingName ~ body.email/password:`,
-    body.email,
-    body.password,
-    typeof body.email === 'string' && typeof body.password === 'string'
-  );
   return typeof body.email === 'string' && typeof body.password === 'string';
 }
 

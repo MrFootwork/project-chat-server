@@ -66,6 +66,16 @@ export async function getUserFromJWT(token: string) {
     const userWithoutPassword = await prisma.user.findUnique({
       where: { id: decoded.id },
       omit: { password: true },
+      include: {
+        friends: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            isDeleted: true,
+          },
+        },
+      },
     });
 
     if (!userWithoutPassword)

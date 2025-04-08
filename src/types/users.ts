@@ -7,11 +7,12 @@ export type UserDB = {
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
+  friends: MessageAuthor[];
 };
 
 export type RoomMember = Omit<
   UserDB,
-  'password' | 'createdAt' | 'updatedAt'
+  'password' | 'createdAt' | 'updatedAt' | 'friends'
 > & {
   isAdmin: boolean;
   userLeft: boolean;

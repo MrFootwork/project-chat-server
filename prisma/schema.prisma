@@ -22,8 +22,10 @@ model User {
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  friends   User[]   @relation("UserFriends")
 
   // Relations
+  User         User[]       @relation("UserFriends")
   Messages     Message[]    @relation("UserMessages")
   Roles        RoomConfig[]
   ReadMessages Message[]    @relation("MessageReadBy")
