@@ -1,10 +1,8 @@
 import { Router } from 'express';
 import prisma from '../db';
 import { Prisma } from '@prisma/client';
-import { RequestToken } from '../types/requests';
 import { formatPopulatedRooms } from '../services/rooms.service';
-import { RoomDB } from '../types/rooms';
-import { UserDB } from '../types/users';
+import { RequestToken } from '../types/requests';
 
 const router = Router();
 
@@ -50,7 +48,7 @@ const roomIncludePopulated = <Prisma.RoomInclude>{
 };
 
 // GET all rooms
-router.get('/all', async (req, res, next) => {
+router.get('/all', async (_, res, next) => {
   try {
     const rooms = await prisma.room.findMany({
       include: roomIncludePopulated,
@@ -198,6 +196,37 @@ router.delete('/:roomId', async (req, res, next) => {
     const deletedRoom = await prisma.room.delete({ where: { id: roomId } });
 
     res.json(deletedRoom);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST Connect a user to a room
+router.post('/:roomId/members/:memberId', async (req, res, next) => {
+  try {
+    const { roomId, memberId } = req.params;
+    let { isAdmin, userLeft } = req.body;
+
+    isAdmin = isAdmin ?? false;
+    userLeft = userLeft ?? false;
+
+    const newRoomConfig = await prisma.roomConfig.upsert({
+      where: {
+        userId_roomId: { userId: memberId, roomId: roomId },
+      },
+      update: {
+        isAdmin,
+        userLeft,
+      },
+      create: {
+        userId: memberId,
+        roomId: roomId,
+        isAdmin,
+        userLeft,
+      },
+    });
+
+    res.status(200).json(newRoomConfig);
   } catch (error) {
     next(error);
   }
