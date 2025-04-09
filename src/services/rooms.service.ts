@@ -1,6 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { MessageDB, MessageFormatted } from '../types/messages';
 import { RoomFormatted, RoomDB } from '../types/rooms';
+
+import prisma from '../db';
+import { roomIncludePopulated } from '../routes/rooms.routes';
 import { reshapeReaders } from './users.service';
 
 /**
@@ -67,4 +70,41 @@ export function formatPopulatedMessage(
       isDeleted: message.User.isDeleted,
     },
   };
+}
+
+export async function connectFriendsToRoom(
+  friendIDs: string[],
+  roomID: string
+): Promise<{ broadcastList: string[]; room: RoomFormatted }> {
+  const broadcastList: string[] = [];
+
+  // Prepare the data for createMany
+  const roomConfigData = friendIDs.map(friendID => ({
+    userId: friendID,
+    roomId: roomID,
+    isAdmin: false,
+    userLeft: false,
+  }));
+
+  try {
+    const newRoomConfigs = await prisma.roomConfig.createManyAndReturn({
+      data: roomConfigData,
+      skipDuplicates: true,
+    });
+
+    console.log(`🚀 ~ connectFriendsToRoom:`, newRoomConfigs);
+
+    newRoomConfigs.forEach(rc => broadcastList.push(rc.userId));
+
+    const updatedRoom = await prisma.room.findUnique({
+      where: { id: roomID },
+      include: roomIncludePopulated,
+    });
+
+    const formattedRooms = formatPopulatedRooms([updatedRoom]);
+
+    return { broadcastList, room: formattedRooms[0] };
+  } catch (error) {
+    throw error;
+  }
 }

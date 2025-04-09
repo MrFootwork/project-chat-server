@@ -7,7 +7,7 @@ import { RequestToken } from '../types/requests';
 const router = Router();
 
 // Shared include object for Prisma queries
-const roomIncludePopulated = <Prisma.RoomInclude>{
+export const roomIncludePopulated = <Prisma.RoomInclude>{
   // Room Members
   Users: {
     select: {

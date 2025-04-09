@@ -1,7 +1,11 @@
 import { Server, Socket } from 'socket.io';
 import prisma from '../db';
-import { formatPopulatedMessage } from '../services/rooms.service';
+import {
+  connectFriendsToRoom,
+  formatPopulatedMessage,
+} from '../services/rooms.service';
 
+// BUG Better use Set of sockets for each user so user can connect on multiple devices
 const userSocketMap = new Map<string, string>(); // Map of userId -> Set of socketIds
 
 export default async function connectionHandler(socket: Socket, io: Server) {
@@ -13,18 +17,24 @@ export default async function connectionHandler(socket: Socket, io: Server) {
   console.log('SOCKET MAP:', userSocketMap);
 
   // Room Invitations
-  socket.on('invite-to-room', (roomID: string, friendIDs: string[]) => {
+  socket.on('invite-to-room', async (roomID: string, friendIDs: string[]) => {
     console.log(`${user.name} invited ${friendIDs} to room ${roomID}`);
 
+    const { broadcastList, room } = await connectFriendsToRoom(
+      friendIDs,
+      roomID
+    );
+
     // Emit the event to all sockets of the invited friends
-    friendIDs.forEach(friendID => {
+    broadcastList.forEach(friendID => {
       const friendSocketID = userSocketMap.get(friendID);
 
       if (!friendSocketID) return;
 
-      io.to(friendSocketID).emit('invited-to-room', roomID, user);
-
-      // FIXME Connect friends to the room
+      // room: room in which the friend is invited
+      // user: host who invited the friend
+      io.to(friendSocketID).emit('invited-to-room', room, user);
+      console.log('Broadcasting to friend:', friendSocketID);
     });
   });
 
@@ -77,6 +87,7 @@ export default async function connectionHandler(socket: Socket, io: Server) {
       `${socket.id} disconnected from ${user.name}. Reason: ${reason}`
     );
 
+    // BUG Remove socket from map when disconnected
     userSocketMap.delete(user.id);
     console.log('SOCKET MAP ~ after disconnect:', userSocketMap);
   });
