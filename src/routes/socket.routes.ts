@@ -5,13 +5,16 @@ import {
   formatPopulatedMessage,
 } from '../services/rooms.service';
 
-// BUG Better use Set of sockets for each user so user can connect on multiple devices
-const userSocketMap = new Map<string, string>(); // Map of userId -> Set of socketIds
+const userSocketMap = new Map<string, Set<string>>();
 
 export default async function connectionHandler(socket: Socket, io: Server) {
   const user = socket.handshake.auth.user;
 
-  userSocketMap.set(user.id, socket.id);
+  // Add socket ID to the map for the user
+  if (!userSocketMap.has(user.id)) {
+    userSocketMap.set(user.id, new Set());
+  }
+  userSocketMap.get(user.id).add(socket.id);
 
   console.log(`${socket.id} connected to "${user.name}" ${user.id}`);
   console.log('SOCKET MAP:', userSocketMap);
@@ -27,14 +30,16 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
     // Emit the event to all sockets of the invited friends
     broadcastList.forEach(friendID => {
-      const friendSocketID = userSocketMap.get(friendID);
+      const friendSockets = userSocketMap.get(friendID);
 
-      if (!friendSocketID) return;
-
-      // room: room in which the friend is invited
-      // user: host who invited the friend
-      io.to(friendSocketID).emit('invited-to-room', room, user);
-      console.log('Broadcasting to friend:', friendSocketID);
+      if (friendSockets) {
+        friendSockets.forEach(socketID => {
+          io.to(socketID).emit('invited-to-room', room, user);
+          // room: room in which the friend is invited
+          // user: host who invited the friend
+          console.log(`📻 broadcasting to ${friendID} on socket (${socketID})`);
+        });
+      }
     });
   });
 
@@ -87,8 +92,17 @@ export default async function connectionHandler(socket: Socket, io: Server) {
       `${socket.id} disconnected from ${user.name}. Reason: ${reason}`
     );
 
-    // BUG Remove socket from map when disconnected
-    userSocketMap.delete(user.id);
+    // Remove the socket ID from the map
+    const userSockets = userSocketMap.get(user.id);
+
+    if (userSockets) {
+      userSockets.delete(socket.id);
+
+      if (userSockets.size === 0) {
+        userSocketMap.delete(user.id);
+      }
+    }
+
     console.log('SOCKET MAP ~ after disconnect:', userSocketMap);
   });
 }
