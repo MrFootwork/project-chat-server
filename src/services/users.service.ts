@@ -16,18 +16,29 @@ export function reshapeReaders(
   return users.map(user => ({
     id: user.id,
     name: user.name,
-    avatarUrl: user.avatarUrl || '',
+    avatarUrl: user.avatarUrl,
     isDeleted: user.isDeleted,
   }));
 }
 
 export async function connectUsersToFriends(friendID: string, userID: string) {
   try {
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: userID },
       data: {
         friends: {
           connect: { id: friendID },
+        },
+      },
+      omit: { password: true },
+      include: {
+        friends: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            isDeleted: true,
+          },
         },
       },
     });
@@ -39,13 +50,20 @@ export async function connectUsersToFriends(friendID: string, userID: string) {
           connect: { id: userID },
         },
       },
+      omit: { password: true },
+      include: {
+        friends: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            isDeleted: true,
+          },
+        },
+      },
     });
 
-    console.log(`🚀 ~ connectUsersToFriends ~ newFriend:`, newFriend);
-
-    const reshapedFriend = reshapeReaders([newFriend]);
-
-    return reshapedFriend[0];
+    return [updatedUser, newFriend];
   } catch (error) {
     throw error;
   }

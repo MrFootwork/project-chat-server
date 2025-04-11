@@ -1,11 +1,12 @@
-import { Server, Socket } from 'socket.io';
 import prisma from '../db';
+
+import { Server, Socket } from 'socket.io';
+import { User } from '@prisma/client';
 import {
   connectFriendsToRoom,
   formatPopulatedMessage,
 } from '../services/rooms.service';
 import { connectUsersToFriends } from '../services/users.service';
-import { User } from '@prisma/client';
 
 const userSocketMap = new Map<Socket['id'], Set<User['id']>>();
 
@@ -27,15 +28,39 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
     try {
       for (const friendID of friendIDs) {
-        const newFriend = await connectUsersToFriends(friendID, user.id);
-        console.log(
-          `🚀 ~ socket.on('add-friend') ~ updated friend:`,
-          newFriend
+        const [updatedUser, updatedFriend] = await connectUsersToFriends(
+          friendID,
+          user.id
+        );
+
+        const [reshapedUser, reshapedFriend] = [updatedUser, updatedFriend].map(
+          user => ({
+            id: user.id,
+            name: user.name,
+            avatarUrl: user.avatarUrl,
+            isDeleted: user.isDeleted,
+          })
         );
 
         // BUG Send the updated user object containing the new friend instead
-        io.to([...userSocketMap.get(friendID)]).emit('added-friend', user);
-        io.to([...userSocketMap.get(user.id)]).emit('added-friend', newFriend);
+
+        const friendsSockets = userSocketMap.get(friendID);
+        if (friendsSockets) {
+          io.to([...friendsSockets]).emit(
+            'added-friend',
+            updatedFriend,
+            reshapedUser
+          );
+        }
+
+        const userSockets = userSocketMap.get(user.id);
+        if (userSockets) {
+          io.to([...userSockets]).emit(
+            'added-friend',
+            updatedUser,
+            reshapedFriend
+          );
+        }
       }
     } catch (error) {
       console.error('Error adding friend:', error);
