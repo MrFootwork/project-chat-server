@@ -4,13 +4,13 @@ import {
   connectFriendsToRoom,
   formatPopulatedMessage,
 } from '../services/rooms.service';
+import { connectUsersToFriends } from '../services/users.service';
 import { User } from '@prisma/client';
 
 const userSocketMap = new Map<Socket['id'], Set<User['id']>>();
 
 export default async function connectionHandler(socket: Socket, io: Server) {
-  const user = socket.handshake.auth.user as User;
-  console.log(`🚀 ~ connectionHandler ~ user:`, user);
+  const user = socket.handshake.auth.user as User; // with friends property
 
   // Add socket ID to the map for the user
   if (!userSocketMap.has(user.id)) {
@@ -20,6 +20,28 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
   console.log(`${socket.id} connected to "${user.name}" ${user.id}`);
   console.log('🔌 New connection:', userSocketMap);
+
+  // Add friend
+  socket.on('add-friend', async (friendIDs: string[]) => {
+    console.log(`${user.name} added ${friendIDs} as a friend`);
+
+    try {
+      for (const friendID of friendIDs) {
+        const newFriend = await connectUsersToFriends(friendID, user.id);
+        console.log(
+          `🚀 ~ socket.on('add-friend') ~ updated friend:`,
+          newFriend
+        );
+
+        // BUG Send the updated user object containing the new friend instead
+        io.to([...userSocketMap.get(friendID)]).emit('added-friend', user);
+        io.to([...userSocketMap.get(user.id)]).emit('added-friend', newFriend);
+      }
+    } catch (error) {
+      console.error('Error adding friend:', error);
+      return;
+    }
+  });
 
   // Room Invitations
   socket.on('invite-to-room', async (roomID: string, friendIDs: string[]) => {
