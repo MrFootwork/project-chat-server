@@ -6,7 +6,7 @@ import { RequestToken } from '../types/requests';
 const router = Router();
 
 // GET all users
-router.get('/', async (req, res, next) => {
+router.get('/', async (_, res, next) => {
   try {
     const users = await prisma.user.findMany({
       omit: { password: true },

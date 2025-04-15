@@ -14,6 +14,8 @@ router.put('/:messageID/read', async (req: RequestToken, res) => {
       where: { id: messageID },
       data: { Readers: { connect: { id: userID } } },
     });
+
+    res.status(200).json({ message: 'Message marked as read' });
   } catch (error) {
     throw error;
   }

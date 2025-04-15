@@ -42,8 +42,6 @@ export default async function connectionHandler(socket: Socket, io: Server) {
           })
         );
 
-        // BUG Send the updated user object containing the new friend instead
-
         const friendsSockets = userSocketMap.get(friendID);
         if (friendsSockets) {
           io.to([...friendsSockets]).emit(
