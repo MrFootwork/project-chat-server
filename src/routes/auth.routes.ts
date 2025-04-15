@@ -9,6 +9,7 @@ const router = Router();
 router.post('/signup', async (req, res, next) => {
   try {
     // TODO Handle duplicate email
+    // FIXME Add chat bot as friend
     await auth.createUser(req.body);
     res.status(201).json({ message: 'User created' });
   } catch (error) {
