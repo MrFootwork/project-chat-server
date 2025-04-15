@@ -88,6 +88,11 @@ router.get('/:roomId', async (req, res, next) => {
       include: roomIncludePopulated,
     });
 
+    if (!room) {
+      res.status(404).json({ message: 'Room not found' });
+      return;
+    }
+
     const formattedRoom = formatPopulatedRooms([room])[0];
 
     res.json(formattedRoom);
