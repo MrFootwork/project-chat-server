@@ -32,6 +32,7 @@ router.post('/login', async (req, res, next) => {
 
     // Check if user exists
     let user: User;
+    // TODO Unnecessary calls and requests => fetch userpassword only
     if (usingName(body)) user = await auth.getUserByName(body.name);
     if (usingEmail(body)) user = await auth.getUserByEmail(body.email);
     if (!user) throw Error(`NoUserError`);
