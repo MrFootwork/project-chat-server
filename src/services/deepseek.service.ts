@@ -10,8 +10,6 @@ export default async function handleDeepSeekResponse(
   roomID: string,
   rawMessage: string
 ) {
-  let botResponse = null;
-
   const openai = new OpenAI({
     baseURL: 'https://api.deepseek.com',
     apiKey: process.env.DEEPSEEK_API_KEY,
@@ -21,9 +19,13 @@ export default async function handleDeepSeekResponse(
   const messages = await prisma.message.findMany({
     where: { roomId: roomID },
     orderBy: { createdAt: 'desc' },
-    take: 7,
+    take: 7, // Includes the prompt
     include: { User: { select: { id: true, name: true } } },
   });
+
+  if (messages.at(-1).content !== rawMessage) {
+    console.error(`DB messages are missing the prompt.`);
+  }
 
   type Role = 'system' | 'user' | 'assistant';
 
@@ -35,9 +37,8 @@ export default async function handleDeepSeekResponse(
 
   const systemMessage = `
     You are a helpful and friendly AI assistant named "Char-Li".
-    If you have not enough context to answer, just respond, 
-    that you are excited to get to know the user by addressing him 
-    by his name and ask how you can help him.`;
+    Be nice, motivating and inspring. The user who sent the prompt has the name ${user.name}.
+    Be curious about the user, if you lack context and ask questions to engage him into a conversation.`;
 
   const chatContext: Array<{
     role: Role;
@@ -49,12 +50,7 @@ export default async function handleDeepSeekResponse(
       name: 'system',
       content: systemMessage,
     },
-    ...reshapedMessages.slice(-6),
-    {
-      role: 'user',
-      name: user.name,
-      content: rawMessage,
-    },
+    ...reshapedMessages,
     {
       role: 'assistant',
       name: 'Char-Li',
@@ -70,7 +66,7 @@ export default async function handleDeepSeekResponse(
     stream: true,
   });
 
-  botResponse = botResponse || '';
+  let botResponse = '';
 
   // Create dummy message for frontend to render
   const createdDummyMessage = await prisma.message.create({
