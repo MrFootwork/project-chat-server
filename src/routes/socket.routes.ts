@@ -8,6 +8,7 @@ import {
 } from '../services/rooms.service';
 import { connectUsersToFriends } from '../services/users.service';
 import handleDeepSeekResponse from '../services/deepseek.service';
+import handleOpenAIResponse from '../services/openAI.service';
 
 const userSocketMap = new Map<Socket['id'], Set<User['id']>>();
 
@@ -159,7 +160,9 @@ export default async function connectionHandler(socket: Socket, io: Server) {
         const roomHasBot = roomMembers.some(m => m.User.id === 'chat-bot');
 
         if (roomHasBot) {
-          await handleDeepSeekResponse(io, user, roomID, rawMessage);
+          // await handleDeepSeekResponse(io, user, roomID, rawMessage);
+          await handleOpenAIResponse(io, user, roomID, rawMessage);
+          // await handleOpenAIResponseImage(io, user, roomID, rawMessage);
         }
       } catch (error) {
         throw error;
@@ -214,4 +217,13 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
     console.log('🔌 Changed connections:', userSocketMap);
   });
+
+  socket.on('connect_error', err => handleErrors(err));
+  socket.on('connect_failed', err => handleErrors(err));
+  socket.on('disconnect', err => handleErrors(err));
+
+  function handleErrors(err: Error | string) {
+    console.error(err);
+    console.log('BLABLABLA');
+  }
 }
