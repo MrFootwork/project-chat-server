@@ -7,7 +7,7 @@ import {
   formatPopulatedMessage,
 } from '../services/rooms.service';
 import { connectUsersToFriends } from '../services/users.service';
-import OpenAI from 'openai';
+import handleDeepSeekResponse from '../services/deepseek.service';
 
 const userSocketMap = new Map<Socket['id'], Set<User['id']>>();
 
@@ -158,108 +158,8 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
         const roomHasBot = roomMembers.some(m => m.User.id === 'chat-bot');
 
-        let botResponse = null;
-
         if (roomHasBot) {
-          console.log('Room has Bot');
-
-          const openai = new OpenAI({
-            baseURL: 'https://api.deepseek.com/beta',
-            apiKey: process.env.DEEPSEEK_API_KEY,
-          });
-
-          const messages = await prisma.message.findMany({
-            where: {
-              roomId: roomID,
-            },
-            orderBy: {
-              createdAt: 'asc',
-            },
-            include: {
-              User: { select: { id: true, name: true } },
-            },
-          });
-
-          const reshapedMessages = messages.map(message => ({
-            role:
-              message.userId === 'chat-bot'
-                ? 'assistant'
-                : ('user' as 'user' | 'assistant'),
-            name: message.User.name,
-            content: message.content,
-          }));
-
-          const { name: userName } = await prisma.user.findUnique({
-            where: { id: user.id },
-            select: { name: true },
-          });
-
-          const chatContext: Array<{
-            role: 'system' | 'user' | 'assistant';
-            name?: string;
-            content: string;
-          }> = [
-            {
-              role: 'system',
-              name: 'system',
-              content:
-                'You are a helpful and friendly AI assistant. If you have not enough context to answer, just respond, that you are excited to get to know the user by addressing him by his name and ask how you can help him.',
-            },
-            ...reshapedMessages.slice(-5),
-            {
-              role: 'user',
-              name: userName,
-              content: rawMessage,
-            },
-            {
-              role: 'assistant',
-              name: 'Chat Assistant',
-              content: '',
-            },
-          ];
-
-          const stream = await openai.chat.completions.create({
-            messages: chatContext,
-            model: 'deepseek-chat',
-            max_tokens: 1024,
-            stream: true,
-          });
-
-          botResponse = botResponse || '';
-
-          for await (const chunk of stream) {
-            if (chunk.choices && chunk.choices.length > 0) {
-              console.log(`🚀 ~ forawait ~ chunk.choices:`, chunk.choices);
-
-              const newContent = chunk.choices[0].delta.content;
-              botResponse += newContent;
-            }
-          }
-
-          const botMessage = await prisma.message.create({
-            data: {
-              content: botResponse,
-              userId: 'chat-bot',
-              roomId: roomID,
-              Readers: { connect: { id: user.id } },
-              // FIXME Fix date
-            },
-            include: {
-              Readers: true,
-              User: {
-                select: {
-                  id: true,
-                  name: true,
-                  avatarUrl: true,
-                  isDeleted: true,
-                },
-              },
-            },
-          });
-
-          const reshapedBotmessage = formatPopulatedMessage(botMessage);
-
-          io.to(roomID).emit('receive-message', reshapedBotmessage);
+          await handleDeepSeekResponse(io, user, roomID, rawMessage);
         }
       } catch (error) {
         throw error;
