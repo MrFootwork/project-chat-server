@@ -2,6 +2,7 @@ import prisma from '../db';
 
 import { Server, Socket } from 'socket.io';
 import { User } from '@prisma/client';
+
 import {
   connectFriendsToRoom,
   formatPopulatedMessage,
@@ -9,6 +10,7 @@ import {
 import { connectUsersToFriends } from '../services/users.service';
 import handleDeepSeekResponse from '../services/deepseek.service';
 import handleOpenAIResponse from '../services/openAI.service';
+import handleOpenAIImage from '../services/openAIImage.service';
 
 const userSocketMap = new Map<Socket['id'], Set<User['id']>>();
 
@@ -161,8 +163,8 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
         if (roomHasBot) {
           // await handleDeepSeekResponse(io, user, roomID, rawMessage);
-          await handleOpenAIResponse(io, user, roomID, rawMessage);
-          // await handleOpenAIResponseImage(io, user, roomID, rawMessage);
+          // await handleOpenAIResponse(io, user, roomID, rawMessage);
+          await handleOpenAIImage(io, user, roomID, rawMessage);
         }
       } catch (error) {
         throw error;
