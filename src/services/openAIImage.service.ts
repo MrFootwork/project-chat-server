@@ -3,6 +3,7 @@ import prisma from '../db';
 import { User } from '@prisma/client';
 import { formatPopulatedMessage } from './rooms.service';
 import { Server } from 'socket.io';
+import { uploadImage } from './cloudinary.service';
 
 const client = new OpenAI();
 
@@ -84,7 +85,7 @@ export default async function handleOpenAIImage(
   // });
 
   const response = await client.images.generate({
-    model: 'dall-e-2',
+    model: 'dall-e-3',
     prompt: rawMessage,
     n: 1,
     size: '1024x1024',
@@ -92,6 +93,8 @@ export default async function handleOpenAIImage(
 
   console.log(`🚀 ~ response:`, response);
   const imageURL = response.data[0].url;
+
+  const cloudinaryURL = await uploadImage(imageURL);
 
   // Stream bot response
   let botResponse = '';
@@ -114,7 +117,11 @@ export default async function handleOpenAIImage(
     }
   }
 
-  io.to(roomID).emit('stream-bot-message', createdDummyMessage.id, imageURL);
+  io.to(roomID).emit(
+    'stream-bot-message',
+    createdDummyMessage.id,
+    `![Generated Image](${cloudinaryURL})`
+  );
 
   // for await (const chunk of stream) {
   //   if (chunk.type === 'response.output_text.delta') {
@@ -126,7 +133,7 @@ export default async function handleOpenAIImage(
   const botMessage = await prisma.message.update({
     where: { id: createdDummyMessage.id },
     data: {
-      content: imageURL,
+      content: `![Generated Image](${cloudinaryURL})`,
       Readers: { connect: { id: user.id } },
     },
     include: {

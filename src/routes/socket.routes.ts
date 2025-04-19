@@ -11,6 +11,7 @@ import { connectUsersToFriends } from '../services/users.service';
 import handleDeepSeekResponse from '../services/deepseek.service';
 import handleOpenAIResponse from '../services/openAI.service';
 import handleOpenAIImage from '../services/openAIImage.service';
+import { uploadImage } from '../services/cloudinary.service';
 
 const userSocketMap = new Map<Socket['id'], Set<User['id']>>();
 
