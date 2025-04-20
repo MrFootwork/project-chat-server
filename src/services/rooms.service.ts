@@ -87,12 +87,60 @@ export async function connectFriendsToRoom(
   }));
 
   try {
+    // Update existing records where userLeft is true
+    await prisma.roomConfig.updateMany({
+      where: {
+        userId: { in: friendIDs },
+        roomId: roomID,
+        userLeft: true,
+      },
+      data: {
+        userLeft: false,
+      },
+    });
+
+    // Create new records for users entering this room for their first time
     const newRoomConfigs = await prisma.roomConfig.createManyAndReturn({
       data: roomConfigData,
       skipDuplicates: true,
     });
 
-    console.log(`🚀 ~ connectFriendsToRoom:`, newRoomConfigs);
+    newRoomConfigs.forEach(rc => broadcastList.push(rc.userId));
+
+    // Fetch updated room
+    const updatedRoom = await prisma.room.findUnique({
+      where: { id: roomID },
+      include: roomIncludePopulated,
+    });
+
+    const formattedRooms = formatPopulatedRooms([updatedRoom]);
+
+    console.log(`🚀 ~ formattedRooms:`, formattedRooms[0].members);
+
+    return { broadcastList, room: formattedRooms[0] };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function disconnectFriendsFromRoom(
+  friendIDs: string[],
+  roomID: string
+): Promise<{ broadcastList: string[]; room: RoomFormatted }> {
+  const broadcastList: string[] = [];
+
+  try {
+    await prisma.roomConfig.updateManyAndReturn({
+      where: {
+        userId: { in: friendIDs },
+        roomId: roomID,
+      },
+      data: { userLeft: true },
+    });
+
+    const newRoomConfigs = await prisma.roomConfig.findMany({
+      where: { roomId: roomID },
+    });
 
     newRoomConfigs.forEach(rc => broadcastList.push(rc.userId));
 

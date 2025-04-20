@@ -5,13 +5,13 @@ import { User } from '@prisma/client';
 
 import {
   connectFriendsToRoom,
+  disconnectFriendsFromRoom,
   formatPopulatedMessage,
 } from '../services/rooms.service';
 import { connectUsersToFriends } from '../services/users.service';
 import handleDeepSeekResponse from '../services/deepseek.service';
 import handleOpenAIResponse from '../services/openAI.service';
 import handleOpenAIImage from '../services/openAIImage.service';
-import { uploadImage } from '../services/cloudinary.service';
 
 const userSocketMap = new Map<Socket['id'], Set<User['id']>>();
 
@@ -100,6 +100,35 @@ export default async function connectionHandler(socket: Socket, io: Server) {
     });
   });
 
+  // Room Member Removal
+  socket.on('remove-from-room', async (roomID: string, friendIDs: string[]) => {
+    console.log(`${user.name} removed ${friendIDs} from room ${roomID}`);
+
+    const { broadcastList, room } = await disconnectFriendsFromRoom(
+      friendIDs,
+      roomID
+    );
+
+    // Emit the event to all sockets of the invited friends
+    broadcastList.forEach(friendID => {
+      const friendSockets = userSocketMap.get(friendID);
+
+      if (friendSockets) {
+        friendSockets.forEach(socketID => {
+          io.to(socketID).emit('removed-from-room', room, user);
+          // room: room in which the friend is removed from
+          // user: host who removed the friend
+          console.log(`📻 broadcasting to ${friendID} on socket (${socketID})`);
+        });
+      }
+    });
+
+    // Emit the event to the host's sockets as well
+    userSocketMap.get(user.id).forEach(socketID => {
+      io.to(socketID).emit('removed-from-room', room, user);
+    });
+  });
+
   // Room Join Requests
   socket.on('join-room', async (roomIDs: string[]) => {
     // FIXME validate and handle roomIDs: string[]
@@ -153,19 +182,16 @@ export default async function connectionHandler(socket: Socket, io: Server) {
          * CHAT BOT
          ************/
         // Check if assistant is in the room
-        const { Users: roomMembers } = await prisma.room.findFirst({
-          where: { id: roomID },
-          select: {
-            Users: { select: { User: { select: { id: true, name: true } } } },
-          },
+        const botsRoomConfig = await prisma.roomConfig.findFirst({
+          where: { roomId: roomID, userId: 'chat-bot' },
         });
 
-        const roomHasBot = roomMembers.some(m => m.User.id === 'chat-bot');
+        const roomHasActiveBot = !botsRoomConfig.userLeft;
 
-        if (roomHasBot) {
+        if (roomHasActiveBot) {
           // await handleDeepSeekResponse(io, user, roomID, rawMessage);
-          // await handleOpenAIResponse(io, user, roomID, rawMessage);
-          await handleOpenAIImage(io, user, roomID, rawMessage);
+          await handleOpenAIResponse(io, user, roomID, rawMessage);
+          // await handleOpenAIImage(io, user, roomID, rawMessage);
         }
       } catch (error) {
         throw error;
