@@ -1,7 +1,8 @@
-import { Prisma } from '@prisma/client';
 import { MessageDB, MessageFormatted } from '../types/messages';
 import { RoomFormatted, RoomDB } from '../types/rooms';
+import { RoomMember } from '../types/users';
 
+import { Prisma } from '@prisma/client';
 import prisma from '../db';
 import { roomIncludePopulated } from '../routes/rooms.routes';
 import { reshapeReaders } from './users.service';
@@ -75,9 +76,7 @@ export function formatPopulatedMessage(
 export async function connectFriendsToRoom(
   friendIDs: string[],
   roomID: string
-): Promise<{ broadcastList: string[]; room: RoomFormatted }> {
-  const broadcastList: string[] = [];
-
+): Promise<{ addedMembers: RoomMember[]; room: RoomFormatted }> {
   // Prepare the data for createMany
   const roomConfigData = friendIDs.map(friendID => ({
     userId: friendID,
@@ -100,12 +99,10 @@ export async function connectFriendsToRoom(
     });
 
     // Create new records for users entering this room for their first time
-    const newRoomConfigs = await prisma.roomConfig.createManyAndReturn({
+    await prisma.roomConfig.createManyAndReturn({
       data: roomConfigData,
       skipDuplicates: true,
     });
-
-    newRoomConfigs.forEach(rc => broadcastList.push(rc.userId));
 
     // Fetch updated room
     const updatedRoom = await prisma.room.findUnique({
@@ -115,9 +112,11 @@ export async function connectFriendsToRoom(
 
     const formattedRooms = formatPopulatedRooms([updatedRoom]);
 
-    console.log(`🚀 ~ formattedRooms:`, formattedRooms[0].members);
+    const addedMembers = formattedRooms[0].members.filter(m =>
+      friendIDs.includes(m.id)
+    );
 
-    return { broadcastList, room: formattedRooms[0] };
+    return { addedMembers, room: formattedRooms[0] };
   } catch (error) {
     throw error;
   }
@@ -138,11 +137,11 @@ export async function disconnectFriendsFromRoom(
       data: { userLeft: true },
     });
 
-    const newRoomConfigs = await prisma.roomConfig.findMany({
-      where: { roomId: roomID },
-    });
+    // const newRoomConfigs = await prisma.roomConfig.findMany({
+    //   where: { roomId: roomID },
+    // });
 
-    newRoomConfigs.forEach(rc => broadcastList.push(rc.userId));
+    friendIDs.forEach(friendID => broadcastList.push(friendID));
 
     const updatedRoom = await prisma.room.findUnique({
       where: { id: roomID },

@@ -75,18 +75,20 @@ export default async function connectionHandler(socket: Socket, io: Server) {
   socket.on('invite-to-room', async (roomID: string, friendIDs: string[]) => {
     console.log(`${user.name} invited ${friendIDs} to room ${roomID}`);
 
-    const { broadcastList, room } = await connectFriendsToRoom(
+    const { addedMembers, room } = await connectFriendsToRoom(
       friendIDs,
       roomID
     );
 
+    io.to(roomID).emit('invited-to-room', room, addedMembers);
+
     // Emit the event to all sockets of the invited friends
-    broadcastList.forEach(friendID => {
+    friendIDs.forEach(friendID => {
       const friendSockets = userSocketMap.get(friendID);
 
       if (friendSockets) {
         friendSockets.forEach(socketID => {
-          io.to(socketID).emit('invited-to-room', room, user);
+          io.to(socketID).emit('invited-to-room', room, addedMembers);
           // room: room in which the friend is invited
           // user: host who invited the friend
           console.log(`📻 broadcasting to ${friendID} on socket (${socketID})`);
@@ -95,9 +97,9 @@ export default async function connectionHandler(socket: Socket, io: Server) {
     });
 
     // Emit the event to the host's sockets as well
-    userSocketMap.get(user.id).forEach(socketID => {
-      io.to(socketID).emit('invited-to-room', room, user);
-    });
+    // userSocketMap.get(user.id).forEach(socketID => {
+    //   io.to(socketID).emit('invited-to-room', addedMembers, user);
+    // });
   });
 
   // Room Member Removal
@@ -109,24 +111,27 @@ export default async function connectionHandler(socket: Socket, io: Server) {
       roomID
     );
 
-    // Emit the event to all sockets of the invited friends
-    broadcastList.forEach(friendID => {
-      const friendSockets = userSocketMap.get(friendID);
+    // Emit event to all room members clients for updates
+    io.to(roomID).emit('removed-from-room', room, friendIDs);
 
-      if (friendSockets) {
-        friendSockets.forEach(socketID => {
-          io.to(socketID).emit('removed-from-room', room, user);
-          // room: room in which the friend is removed from
-          // user: host who removed the friend
-          console.log(`📻 broadcasting to ${friendID} on socket (${socketID})`);
-        });
-      }
-    });
+    // Emit the event to all sockets of the invited friends
+    // broadcastList.forEach(friendID => {
+    //   const friendSockets = userSocketMap.get(friendID);
+
+    //   if (friendSockets) {
+    //     friendSockets.forEach(socketID => {
+    //       io.to(socketID).emit('removed-from-room', room, friendID);
+    //       // room: room in which the friend is removed from
+    //       // user: host who removed the friend
+    //       console.log(`📻 broadcasting to ${friendID} on socket (${socketID})`);
+    //     });
+    //   }
+    // });
 
     // Emit the event to the host's sockets as well
-    userSocketMap.get(user.id).forEach(socketID => {
-      io.to(socketID).emit('removed-from-room', room, user);
-    });
+    // userSocketMap.get(user.id).forEach(socketID => {
+    //   io.to(socketID).emit('removed-from-room', room, user);
+    // });
   });
 
   // Room Join Requests
@@ -186,7 +191,9 @@ export default async function connectionHandler(socket: Socket, io: Server) {
           where: { roomId: roomID, userId: 'chat-bot' },
         });
 
-        const roomHasActiveBot = !botsRoomConfig.userLeft;
+        const roomHasActiveBot = !botsRoomConfig
+          ? false
+          : !botsRoomConfig?.userLeft;
 
         if (roomHasActiveBot) {
           // await handleDeepSeekResponse(io, user, roomID, rawMessage);
