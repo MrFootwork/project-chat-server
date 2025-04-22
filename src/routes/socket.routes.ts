@@ -75,18 +75,25 @@ export default async function connectionHandler(socket: Socket, io: Server) {
   socket.on('invite-to-room', async (roomID: string, friendIDs: string[]) => {
     console.log(`${user.name} invited ${friendIDs} to room ${roomID}`);
 
+    const { Users: oldMembers } = await prisma.room.findFirst({
+      where: { id: roomID },
+      select: { Users: { select: { userId: true, userLeft: true } } },
+    });
+
     const { addedMembers, room } = await connectFriendsToRoom(
       friendIDs,
       roomID
     );
 
+    // Send to all existing room members, also one who left
     io.to(roomID).emit('invited-to-room', room, addedMembers);
 
-    // Emit the event to all sockets of the invited friends
+    // Send to all friends entering their first time
     friendIDs.forEach(friendID => {
       const friendSockets = userSocketMap.get(friendID);
+      const isReEntering = oldMembers.some(m => m.userId === friendID);
 
-      if (friendSockets) {
+      if (friendSockets && !isReEntering) {
         friendSockets.forEach(socketID => {
           io.to(socketID).emit('invited-to-room', room, addedMembers);
           // room: room in which the friend is invited
@@ -95,11 +102,6 @@ export default async function connectionHandler(socket: Socket, io: Server) {
         });
       }
     });
-
-    // Emit the event to the host's sockets as well
-    // userSocketMap.get(user.id).forEach(socketID => {
-    //   io.to(socketID).emit('invited-to-room', addedMembers, user);
-    // });
   });
 
   // Room Member Removal

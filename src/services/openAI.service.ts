@@ -110,7 +110,7 @@ export default async function handleOpenAIResponse(
 
   for await (const chunk of stream) {
     if (chunk.type === 'response.output_text.delta') {
-      await emitChunkWithDelay(chunk, 15);
+      await emitChunkWithDelay(chunk, 35);
     }
   }
 
