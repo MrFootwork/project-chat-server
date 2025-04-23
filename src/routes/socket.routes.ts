@@ -152,89 +152,108 @@ export default async function connectionHandler(socket: Socket, io: Server) {
       console.log(`${user.name} is already in the specified rooms.`);
     }
 
-    socket.on('send-message', async (roomID: string, rawMessage: string) => {
-      console.log(`${roomID} | ${user.name}: ${rawMessage}`);
-      if (!roomID) return;
+    socket.on(
+      'send-message',
+      async (
+        roomID: string,
+        rawMessage: string,
+        options?: { botModel: string }
+      ) => {
+        console.log(`${roomID} | ${user.name}: ${rawMessage}`);
+        if (!roomID) return;
 
-      try {
-        /***************
-         * USER MESSAGE
-         **************/
-        const newMessage = await prisma.message.create({
-          data: {
-            content: rawMessage,
-            userId: user.id,
-            roomId: roomID,
-            Readers: { connect: { id: user.id } },
-          },
-          include: {
-            Readers: true,
-            User: {
-              select: {
-                id: true,
-                name: true,
-                avatarUrl: true,
-                isDeleted: true,
+        try {
+          /***************
+           * USER MESSAGE
+           **************/
+          const newMessage = await prisma.message.create({
+            data: {
+              content: rawMessage,
+              userId: user.id,
+              roomId: roomID,
+              Readers: { connect: { id: user.id } },
+            },
+            include: {
+              Readers: true,
+              User: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                  isDeleted: true,
+                },
               },
             },
-          },
-        });
+          });
 
-        const reshapedMessage = formatPopulatedMessage(newMessage);
+          const reshapedMessage = formatPopulatedMessage(newMessage);
 
-        // Emit the reshaped message to all room members
-        io.to(roomID).emit('receive-message', reshapedMessage);
+          // Emit the reshaped message to all room members
+          io.to(roomID).emit('receive-message', reshapedMessage);
 
-        /*************
-         * CHAT BOT
-         ************/
-        // Check if assistant is in the room
-        const botsRoomConfig = await prisma.roomConfig.findFirst({
-          where: { roomId: roomID, userId: 'chat-bot' },
-        });
+          /*************
+           * CHAT BOT
+           ************/
+          // Check if assistant is in the room
+          const botsRoomConfig = await prisma.roomConfig.findFirst({
+            where: { roomId: roomID, userId: 'chat-bot' },
+          });
 
-        const roomHasActiveBot = !botsRoomConfig
-          ? false
-          : !botsRoomConfig?.userLeft;
+          const roomHasActiveBot = !botsRoomConfig
+            ? false
+            : !botsRoomConfig?.userLeft;
 
-        if (roomHasActiveBot) {
-          // await handleDeepSeekResponse(io, user, roomID, rawMessage);
-          await handleOpenAIResponse(io, user, roomID, rawMessage);
-          // await handleOpenAIImage(io, user, roomID, rawMessage);
+          if (roomHasActiveBot) {
+            switch (options.botModel) {
+              case 'deepseek':
+                await handleDeepSeekResponse(io, user, roomID, rawMessage);
+                break;
+              case 'gpt':
+                await handleOpenAIResponse(io, user, roomID, rawMessage);
+                break;
+              case 'dall-e':
+                await handleOpenAIImage(io, user, roomID, rawMessage);
+                break;
+
+              default:
+                await handleOpenAIResponse(io, user, roomID, rawMessage);
+                break;
+            }
+          }
+        } catch (error) {
+          throw error;
+
+          // BUG When trying to send a message in a deleted room
+
+          // send a message to client to delete this room from UI
+
+          // PrismaClientKnownRequestError:
+          // Invalid `prisma.message.create()` invocation in
+          // C:\Users\panda\projects\ironhack\project-chat-server\src\routes\socket.routes.ts:119:49
+
+          //   116 if (!roomID) return;
+          //   117
+          //   118 try {
+          // → 119   const newMessage = await prisma.message.create(
+          // Foreign key constraint violated: `Message_roomId_fkey (index)`
+          //     at Wn.handleRequestError (C:\Users\panda\projects\ironhack\project-chat-server\node_modules\@prisma\client\runtime\library.js:121:7534)
+          //     at Wn.handleAndLogRequestError (C:\Users\panda\projects\ironhack\project-chat-server\node_modules\@prisma\client\runtime\library.js:121:6858)
+          //     at Wn.request (C:\Users\panda\projects\ironhack\project-chat-server\node_modules\@prisma\client\runtime\library.js:121:6565)
+          //     at l (C:\Users\panda\projects\ironhack\project-chat-server\node_modules\@prisma\client\runtime\library.js:130:10067)
+          // [ERROR] 18:34:40 PrismaClientKnownRequestError:
+          // Invalid `prisma.message.create()` invocation in
+          // C:\Users\panda\projects\ironhack\project-chat-server\src\routes\socket.routes.ts:119:49
+
+          //   116 if (!roomID) return;
+          //   117
+          //   118 try {
+          // → 119   const newMessage = await prisma.message.create(
+          // Foreign key constraint violated: `Message_roomId_fkey (index)`
         }
-      } catch (error) {
-        throw error;
 
-        // BUG When trying to send a message in a deleted room
-
-        // send a message to client to delete this room from UI
-
-        // PrismaClientKnownRequestError:
-        // Invalid `prisma.message.create()` invocation in
-        // C:\Users\panda\projects\ironhack\project-chat-server\src\routes\socket.routes.ts:119:49
-
-        //   116 if (!roomID) return;
-        //   117
-        //   118 try {
-        // → 119   const newMessage = await prisma.message.create(
-        // Foreign key constraint violated: `Message_roomId_fkey (index)`
-        //     at Wn.handleRequestError (C:\Users\panda\projects\ironhack\project-chat-server\node_modules\@prisma\client\runtime\library.js:121:7534)
-        //     at Wn.handleAndLogRequestError (C:\Users\panda\projects\ironhack\project-chat-server\node_modules\@prisma\client\runtime\library.js:121:6858)
-        //     at Wn.request (C:\Users\panda\projects\ironhack\project-chat-server\node_modules\@prisma\client\runtime\library.js:121:6565)
-        //     at l (C:\Users\panda\projects\ironhack\project-chat-server\node_modules\@prisma\client\runtime\library.js:130:10067)
-        // [ERROR] 18:34:40 PrismaClientKnownRequestError:
-        // Invalid `prisma.message.create()` invocation in
-        // C:\Users\panda\projects\ironhack\project-chat-server\src\routes\socket.routes.ts:119:49
-
-        //   116 if (!roomID) return;
-        //   117
-        //   118 try {
-        // → 119   const newMessage = await prisma.message.create(
-        // Foreign key constraint violated: `Message_roomId_fkey (index)`
+        // FIXME Add a listener for "writing message"
       }
-
-      // FIXME Add a listener for "writing message"
-    });
+    );
   });
 
   socket.on('disconnect', reason => {
