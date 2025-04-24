@@ -230,7 +230,7 @@ export default async function connectionHandler(socket: Socket, io: Server) {
             }
           }
         } catch (error) {
-          throw error;
+          console.error(error);
 
           // BUG When trying to send a message in a deleted room
 
