@@ -22,7 +22,16 @@ export default async function connectionHandler(socket: Socket, io: Server) {
   if (!userSocketMap.has(user.id)) {
     userSocketMap.set(user.id, new Set());
   }
+
   userSocketMap.get(user.id).add(socket.id);
+
+  // Respond to the client's request for initial online statuses
+  socket.on('get-initial-online-status', () => {
+    socket.emit('initial-online-status', Array.from(userSocketMap.keys()));
+  });
+
+  // Notify all clients about the new online user
+  io.emit('user-online', user.id);
 
   console.log(`${socket.id} connected to "${user.name}" ${user.id}`);
   console.log('🔌 New connection:', userSocketMap);
@@ -269,6 +278,9 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
       if (userSockets.size === 0) {
         userSocketMap.delete(user.id);
+
+        // Notify all clients about the offline user
+        io.emit('user-offline', user.id);
       }
     }
 
