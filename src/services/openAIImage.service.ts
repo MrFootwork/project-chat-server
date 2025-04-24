@@ -49,6 +49,7 @@ export default async function handleOpenAIImage(
         prompt: rawMessage,
         n: 1,
         size: '1024x1024',
+        quality: 'hd',
       });
     } catch (error) {
       await handleOpenAIError(error, createdDummyMessage.id);

@@ -9,7 +9,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export async function createUser(user: InputUserSignup) {
   try {
     user = hashUserPassword(user);
-    await prisma.user.create({ data: user });
+    await prisma.user.create({
+      data: { ...user, friends: { connect: { id: 'chat-bot' } } },
+    });
     return;
   } catch (error) {
     throw error;
