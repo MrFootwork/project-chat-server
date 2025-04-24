@@ -80,6 +80,12 @@ export default async function connectionHandler(socket: Socket, io: Server) {
     }
   });
 
+  // Room Deletion
+  socket.on('delete-room', (roomID: string) => {
+    console.log('🚮 Registered room deletion for ', roomID);
+    io.to(roomID).emit('deleted-room', roomID);
+  });
+
   // Room Invitations
   socket.on('invite-to-room', async (roomID: string, friendIDs: string[]) => {
     console.log(`${user.name} invited ${friendIDs} to room ${roomID}`);
