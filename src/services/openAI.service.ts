@@ -15,7 +15,7 @@ export default async function handleOpenAIResponse(
   // Create Context for Chat Bot
   const messages = await prisma.message.findMany({
     where: { roomId: roomID },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: 'desc' }, // Reverse order to pick the most recent
     take: 7, // Includes the prompt
     include: { User: { select: { id: true, name: true } } },
   });
@@ -26,10 +26,17 @@ export default async function handleOpenAIResponse(
 
   type Role = 'user' | 'assistant' | 'system' | 'developer';
 
-  const reshapedMessages = messages.reverse().map(message => ({
-    role: (message.userId === 'chat-bot' ? 'assistant' : 'user') as Role,
-    content: `[${message.User.name}]: ${message.content}`,
-  }));
+  const reshapedMessages = messages.reverse().map(message => {
+    const label =
+      message.userId === 'chat-bot' ? '' : `[${message.User.name}]: `;
+    const authorRole: Role =
+      message.userId === 'chat-bot' ? 'assistant' : 'user';
+
+    return {
+      role: authorRole,
+      content: `${label}${message.content}`,
+    };
+  });
 
   const systemMessage = `
     You are a helpful and friendly AI assistant named "Char-Li".

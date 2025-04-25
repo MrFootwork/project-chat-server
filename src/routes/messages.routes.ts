@@ -9,19 +9,32 @@ export function messagesHandler(socket: Socket, io: Server) {
   socket.on('delete-message', async (messageID: string) => {
     console.log('Deleting message: ', messageID);
 
-    // Find Message Object
-    const message = await prisma.message.findFirst({
-      where: { id: messageID },
-    });
-
     // Set Delete marker to true
-    await prisma.message.update({
+    const message = await prisma.message.update({
       where: { id: messageID },
       data: { deleted: true },
     });
 
     // Send Message Object
     io.to(message.roomId).emit('deleted-message', message);
+  });
+
+  // EDIT message
+  socket.on('edit-message', async (messageID: string, content: string) => {
+    console.log('Editing message: ', messageID, content);
+
+    try {
+      // Set Edit marker to true
+      const message = await prisma.message.update({
+        where: { id: messageID },
+        data: { edited: true, content },
+      });
+
+      // Send Message Object
+      io.to(message.roomId).emit('edited-message', message);
+    } catch (error) {
+      console.error(error);
+    }
   });
 }
 
