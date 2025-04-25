@@ -22,6 +22,7 @@ export const roomIncludePopulated = <Prisma.RoomInclude>{
       content: true,
       roomId: true,
       edited: true,
+      deleted: true,
       // Messages Author
       User: {
         select: {

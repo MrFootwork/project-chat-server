@@ -5,6 +5,7 @@ import { instrument } from '@socket.io/admin-ui';
 
 import connectionHandler from './routes/socket.routes';
 import { validateToken } from './services/socket.service';
+import { messagesHandler } from './routes/messages.routes';
 
 // https://socket.io/docs/v4/server-initialization/#with-express
 export default function socketServer(app: Express) {
@@ -26,7 +27,10 @@ export default function socketServer(app: Express) {
   io.use(validateToken);
 
   // Create a socket connection between this server and a client
-  io.on('connection', async socket => connectionHandler(socket, io));
+  io.on('connection', async socket => {
+    connectionHandler(socket, io);
+    messagesHandler(socket, io);
+  });
 
   // Use the admin dashboard
   instrument(io, { auth: false, mode: 'development' });

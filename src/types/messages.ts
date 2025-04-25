@@ -4,6 +4,7 @@ export type MessageDB = {
   id: string;
   content: string;
   edited: boolean;
+  deleted: boolean;
   userId: string;
   roomId: string;
   createdAt: Date;
@@ -16,6 +17,7 @@ export type MessageFormatted = {
   id: string;
   content: string;
   edited: boolean;
+  deleted: boolean;
   readers: MessageAuthor[];
   roomId: string;
   createdAt: Date;

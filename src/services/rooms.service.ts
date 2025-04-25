@@ -60,6 +60,7 @@ export function formatPopulatedMessage(
     id: message.id,
     content: message.content,
     edited: message.edited,
+    deleted: message.deleted,
     readers: reshapeReaders(message.Readers),
     roomId: message.roomId,
     createdAt: message.createdAt,
@@ -136,10 +137,6 @@ export async function disconnectFriendsFromRoom(
       },
       data: { userLeft: true },
     });
-
-    // const newRoomConfigs = await prisma.roomConfig.findMany({
-    //   where: { roomId: roomID },
-    // });
 
     friendIDs.forEach(friendID => broadcastList.push(friendID));
 

@@ -1,7 +1,29 @@
 import { RequestToken } from '../types/requests';
 import prisma from '../db';
 import { Router } from 'express';
+import { Server, Socket } from 'socket.io';
 import OpenAI from 'openai';
+
+export function messagesHandler(socket: Socket, io: Server) {
+  // DELETE message
+  socket.on('delete-message', async (messageID: string) => {
+    console.log('Deleting message: ', messageID);
+
+    // Find Message Object
+    const message = await prisma.message.findFirst({
+      where: { id: messageID },
+    });
+
+    // Set Delete marker to true
+    await prisma.message.update({
+      where: { id: messageID },
+      data: { deleted: true },
+    });
+
+    // Send Message Object
+    io.to(message.roomId).emit('deleted-message', message);
+  });
+}
 
 const router = Router();
 

@@ -47,6 +47,7 @@ model Message {
   id        String   @id @default(cuid())
   content   String
   edited    Boolean  @default(false)
+  deleted   Boolean  @default(false)
   userId    String
   roomId    String
   createdAt DateTime @default(now())
