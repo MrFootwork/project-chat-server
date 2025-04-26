@@ -48,6 +48,24 @@ router.get('/me', async (req: RequestToken, res, next) => {
   }
 });
 
+// PATCH update user
+router.patch('/me', async (req: RequestToken, res, next) => {
+  try {
+    const { password, ...rest } = req.body;
+    const updateData = password.length ? req.body : rest;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.userId },
+      data: updateData,
+      omit: { password: true },
+    });
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // PUT Add a friend to me
 router.put('/me/friends/:friendId', async (req: RequestToken, res, next) => {
   const { friendId } = req.params;

@@ -1,7 +1,10 @@
+import { RequestToken } from '../types/requests';
+import { cookieClear, cookieSet } from '../config/auth';
+
 import { Router } from 'express';
 import { User } from '@prisma/client';
 
-import { cookieClear, cookieSet } from '../config/auth';
+import isProtected from '../middlewares/protected';
 import * as auth from '../services/auth.service';
 
 const router = Router();
@@ -9,13 +12,32 @@ const router = Router();
 router.post('/signup', async (req, res, next) => {
   try {
     // TODO Handle duplicate email
-    // FIXME Add chat bot as friend
     await auth.createUser(req.body);
     res.status(201).json({ message: 'User created' });
   } catch (error) {
     next(error);
   }
 });
+
+router.post(
+  '/validate-password',
+  isProtected,
+  async (req: RequestToken, res, next) => {
+    const { password } = req.body;
+    const userID = req.userId;
+
+    try {
+      const passwordMatches = await auth.checkPasswordMatch(password, userID);
+
+      const statusCode = passwordMatches ? 200 : 401;
+      const message = passwordMatches ? 'Password valid.' : 'Password wrong.';
+
+      res.status(statusCode).json({ message });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 router.post('/login', async (req, res, next) => {
   try {
