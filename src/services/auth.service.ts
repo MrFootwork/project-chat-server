@@ -8,7 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 export async function createUser(user: InputUserSignup) {
   try {
-    user = hashUserPassword(user);
+    user = { ...user, password: hashUserPassword(user.password) };
+
     await prisma.user.create({
       data: { ...user, friends: { connect: { id: 'chat-bot' } } },
     });
@@ -89,9 +90,9 @@ export async function getUserFromJWT(token: string) {
   }
 }
 
-function hashUserPassword(user: InputUserSignup) {
+export function hashUserPassword(password: InputUserSignup['password']) {
   const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync(user.password, salt);
-  user.password = hash;
-  return user;
+  const hash = bcrypt.hashSync(password, salt);
+
+  return hash;
 }

@@ -1,7 +1,9 @@
+import { RequestToken } from '../types/requests';
+
 import { Router } from 'express';
 import prisma from '../db';
-import { getUserFromJWT } from '../services/auth.service';
-import { RequestToken } from '../types/requests';
+
+import { getUserFromJWT, hashUserPassword } from '../services/auth.service';
 
 const router = Router();
 
@@ -52,7 +54,10 @@ router.get('/me', async (req: RequestToken, res, next) => {
 router.patch('/me', async (req: RequestToken, res, next) => {
   try {
     const { password, ...rest } = req.body;
-    const updateData = password.length ? req.body : rest;
+
+    const updateData = password.length
+      ? { ...req.body, password: hashUserPassword(password) }
+      : rest;
 
     const updatedUser = await prisma.user.update({
       where: { id: req.userId },
