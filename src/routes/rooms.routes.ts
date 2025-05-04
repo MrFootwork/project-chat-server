@@ -1,8 +1,9 @@
+import { RequestToken } from '../types/requests';
 import { Router } from 'express';
 import prisma from '../db';
 import { Prisma } from '@prisma/client';
 import { formatPopulatedRooms } from '../services/rooms.service';
-import { RequestToken } from '../types/requests';
+import { messagesIncludePopulated } from './messages.routes';
 
 const router = Router();
 
@@ -16,36 +17,7 @@ export const roomIncludePopulated = <Prisma.RoomInclude>{
       User: { omit: { password: true } },
     },
   },
-  Messages: {
-    select: {
-      id: true,
-      content: true,
-      roomId: true,
-      edited: true,
-      deleted: true,
-      // Messages Author
-      User: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          isDeleted: true,
-        },
-      },
-      // Readers of the message
-      Readers: {
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          isDeleted: true,
-        },
-      },
-      createdAt: true,
-      updatedAt: true,
-    },
-    orderBy: { createdAt: 'asc' },
-  },
+  Messages: messagesIncludePopulated,
 };
 
 // GET all rooms
@@ -66,9 +38,17 @@ router.get('/all', async (_, res, next) => {
 // GET all rooms of logged in user
 router.get('/', async (req: RequestToken, res, next) => {
   try {
+    const pageSize = 20;
+
     const rooms = await prisma.room.findMany({
       where: { Users: { some: { userId: req.userId } } },
-      include: roomIncludePopulated,
+      include: {
+        ...roomIncludePopulated,
+        Messages: {
+          ...messagesIncludePopulated,
+          take: pageSize,
+        },
+      },
     });
 
     const formattedRooms = formatPopulatedRooms(rooms);
@@ -83,10 +63,34 @@ router.get('/', async (req: RequestToken, res, next) => {
 router.get('/:roomId', async (req, res, next) => {
   try {
     const { roomId } = req.params;
+    const { page = '1', limit = '15' } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+
+    if (
+      isNaN(pageNumber) ||
+      isNaN(pageSize) ||
+      pageNumber < 1 ||
+      pageSize < 1
+    ) {
+      res.status(400).json({ message: 'Invalid pagination parameters' });
+      return;
+    }
+
+    const skip = (pageNumber - 1) * pageSize;
 
     const room = await prisma.room.findUnique({
       where: { id: roomId },
-      include: roomIncludePopulated,
+      include: {
+        ...roomIncludePopulated,
+        Messages: {
+          ...messagesIncludePopulated,
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: pageSize,
+        },
+      },
     });
 
     if (!room) {

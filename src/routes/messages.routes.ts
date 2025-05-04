@@ -3,6 +3,38 @@ import prisma from '../db';
 import { Router } from 'express';
 import { Server, Socket } from 'socket.io';
 import OpenAI from 'openai';
+import { Prisma } from '@prisma/client';
+
+// Define a separate include object for Messages
+export const messagesIncludePopulated = <Prisma.MessageInclude>{
+  select: {
+    id: true,
+    content: true,
+    roomId: true,
+    edited: true,
+    deleted: true,
+    // Messages Author
+    User: {
+      select: {
+        id: true,
+        name: true,
+        avatarUrl: true,
+        isDeleted: true,
+      },
+    },
+    // Readers of the message
+    Readers: {
+      select: {
+        id: true,
+        name: true,
+        avatarUrl: true,
+        isDeleted: true,
+      },
+    },
+    createdAt: true,
+    updatedAt: true,
+  },
+};
 
 export function messagesHandler(socket: Socket, io: Server) {
   // DELETE message

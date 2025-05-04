@@ -37,7 +37,9 @@ export function formatPopulatedRooms(
         isAdmin: userRelation.isAdmin,
         userLeft: userRelation.userLeft,
       })),
-      messages: Messages.map(message => formatPopulatedMessage(message)),
+      messages: Messages.map(message =>
+        formatPopulatedMessage(message)
+      ).reverse(), // reorder messages
     })
   );
 }

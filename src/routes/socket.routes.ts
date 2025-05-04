@@ -295,7 +295,6 @@ export default async function connectionHandler(socket: Socket, io: Server) {
 
   socket.on('connect_error', err => handleErrors(err));
   socket.on('connect_failed', err => handleErrors(err));
-  socket.on('disconnect', err => handleErrors(err));
 
   function handleErrors(err: Error | string) {
     console.error(err);
