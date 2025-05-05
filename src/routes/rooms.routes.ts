@@ -63,10 +63,10 @@ router.get('/', async (req: RequestToken, res, next) => {
 router.get('/:roomId', async (req, res, next) => {
   try {
     const { roomId } = req.params;
-    const { page = '1', limit = '15' } = req.query;
+    const { page = '1', limit = '20' } = req.query;
 
     const pageNumber = parseInt(page as string, 10);
-    const pageSize = parseInt(limit as string, 10);
+    const pageSize = pageNumber > 1 ? 15 : parseInt(limit as string, 10);
 
     if (
       isNaN(pageNumber) ||
