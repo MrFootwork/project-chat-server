@@ -11,6 +11,7 @@ import isProtected from './middlewares/protected';
 import { errorHandler, notFoundHandler } from './middlewares/error';
 
 import socketServer from './socket';
+import { configureWebPush } from './middlewares/webPush';
 
 // Handles http requests (express is node js framework)
 // https://www.npmjs.com/package/express
@@ -22,6 +23,9 @@ require('./config')(app);
 
 // Auth
 app.use(authMiddleware);
+
+// Configure webPush
+configureWebPush();
 
 // Routes
 app.use('/api/users', isProtected, usersRoutes);
