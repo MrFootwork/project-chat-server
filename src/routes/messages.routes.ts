@@ -116,42 +116,38 @@ router.post('/subscribe', async (req: RequestToken, res) => {
 });
 
 // TEST Push Notification
-router.post('/push', async (req: RequestToken, res) => {
-  // Generate VAPID keys (do this once and save them)
-  const vapidKeys = {
-    publicKey: process.env.VAPID_PUBLIC_KEY,
-    privateKey: process.env.VAPID_PRIVATE_KEY,
-  };
+router.post('/notify', async (req: RequestToken, res) => {
+  try {
+    const subscriptions = await prisma.subscription.findMany();
+    console.log(`🚀 ~ router.post ~ subscriptions:`, subscriptions);
 
-  // Configure VAPID details
-  webPush.setVapidDetails(
-    `mailto:${process.env.MY_MAIL}`,
-    vapidKeys.publicKey,
-    vapidKeys.privateKey
-  );
+    // Send a push notification
+    const payload = JSON.stringify({
+      title: 'Hello!',
+      body: 'This is a test notification.',
+    });
 
-  // Example subscription object (received from the client)
-  const subscription = {
-    endpoint:
-      'https://fcm.googleapis.com/fcm/send/eHDiKp7Tgxs:APA91bGGuKvAH0D3I1fpAKEWkN3p6wU8lUqOK0n88RLZlJ5qiSalbG4WR1xqxY3tg8v0nZ3uEGJJ5CY0gixue1y5mbfGZrhJ4tq73DHeqhaPVd2GMFM-8NKswGHjEo-dCc2qP1WMmwxv',
-    expirationTime: null as number | null,
-    keys: {
-      p256dh:
-        'BKJxbZ8fOVki7GazID8f1o2aebKeuwYPyRgjHTekDV7W7D95lFvQhdhopDJY5dpP_g-mirsH-Orultxz5BpLqCc',
-      auth: 'uU3OScneaLY3oYyj3ArZkw',
-    },
-  };
+    subscriptions.map(s => {
+      const subscription = {
+        endpoint: s.endpoint,
+        keys: {
+          p256dh: s.p256dh,
+          auth: s.auth,
+        },
+      };
 
-  // Send a push notification
-  const payload = JSON.stringify({
-    title: 'Hello!',
-    body: 'This is a test notification.',
-  });
+      webPush
+        .sendNotification(subscription, payload)
+        .then(response =>
+          console.log('Notification sent:', response.headers.location)
+        )
+        .catch(error => console.error('Error sending notification:', error));
+    });
 
-  webPush
-    .sendNotification(subscription, payload)
-    .then(response => console.log('Notification sent:', response))
-    .catch(error => console.error('Error sending notification:', error));
+    res.status(500).json({ message: 'Notification sent.' });
+  } catch (error) {
+    throw error;
+  }
 });
 
 // UPDATE a message to being read by the logged in user
