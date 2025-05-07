@@ -119,12 +119,12 @@ router.post('/subscribe', async (req: RequestToken, res) => {
 router.post('/notify', async (req: RequestToken, res) => {
   try {
     const subscriptions = await prisma.subscription.findMany();
-    console.log(`🚀 ~ router.post ~ subscriptions:`, subscriptions);
 
     // Send a push notification
     const payload = JSON.stringify({
       title: 'Hello!',
       body: 'This is a test notification.',
+      url: `${req.headers['origin']}/chat`,
     });
 
     subscriptions.map(s => {
