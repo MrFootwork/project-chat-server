@@ -128,6 +128,8 @@ router.post('/notify', async (req: RequestToken, res) => {
     });
 
     subscriptions.map(s => {
+      if (s.userId === req.userId) return;
+
       const subscription = {
         endpoint: s.endpoint,
         keys: {
