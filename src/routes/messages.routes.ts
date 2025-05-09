@@ -124,7 +124,7 @@ router.post('/notify', async (req: RequestToken, res) => {
     const payload = JSON.stringify({
       title: 'Hello!',
       body: 'This is a test notification.',
-      url: `${req.headers['origin']}/chat`,
+      url: `${req.headers['origin']}/chat/${req.body.roomID}`,
     });
 
     subscriptions.map(s => {
