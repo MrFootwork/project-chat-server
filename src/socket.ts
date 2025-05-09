@@ -1,4 +1,4 @@
-import { allowedURLs } from './config';
+import { allowedURLs } from './config/index';
 
 import { Express } from 'express';
 import { createServer } from 'http';

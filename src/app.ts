@@ -1,4 +1,5 @@
 import express, { ErrorRequestHandler } from 'express';
+import socketServer from './socket';
 
 import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
@@ -6,11 +7,10 @@ import usersRoutes from './routes/users.routes';
 import roomsRoutes from './routes/rooms.routes';
 import messagesRoutes from './routes/messages.routes';
 
+import config from './config/index';
 import authMiddleware from './middlewares/auth';
 import isProtected from './middlewares/protected';
 import { errorHandler, notFoundHandler } from './middlewares/error';
-
-import socketServer from './socket';
 import { configureWebPush } from './middlewares/webPush';
 
 // Handles http requests (express is node js framework)
@@ -19,7 +19,7 @@ const app = express();
 const server = socketServer(app);
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware
-require('./config')(app);
+config(app);
 
 // Auth
 app.use(authMiddleware);
