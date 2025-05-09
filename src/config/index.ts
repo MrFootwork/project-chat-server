@@ -21,6 +21,12 @@ const FRONTEND_URL_PROD =
 const FRONTEND_URL_DEV =
   process.env.ORIGIN_DEVELOPMENT || 'http://localhost:5173';
 
+export const allowedURLs = [
+  FRONTEND_URL_LOCAL,
+  FRONTEND_URL_PROD,
+  FRONTEND_URL_DEV,
+];
+
 // Middleware configuration
 module.exports = (app: Application) => {
   // Because this is a server that will accept requests from outside and it will be hosted ona server with a `proxy`, express needs to know that it should trust that setting.
@@ -30,7 +36,7 @@ module.exports = (app: Application) => {
   // controls a very specific header to pass headers from the frontend
   app.use(
     cors({
-      origin: [FRONTEND_URL_LOCAL, FRONTEND_URL_PROD, FRONTEND_URL_DEV],
+      origin: allowedURLs,
       credentials: true,
     })
   );

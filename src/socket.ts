@@ -1,11 +1,13 @@
+import { allowedURLs } from './config';
+
 import { Express } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { instrument } from '@socket.io/admin-ui';
 
 import connectionHandler from './routes/socket.routes';
-import { validateToken } from './services/socket.service';
 import { messagesHandler } from './routes/messages.routes';
+import { validateToken } from './services/socket.service';
 
 // https://socket.io/docs/v4/server-initialization/#with-express
 export default function socketServer(app: Express) {
@@ -13,11 +15,7 @@ export default function socketServer(app: Express) {
 
   const io = new Server(server, {
     cors: {
-      origin: [
-        'https://admin.socket.io',
-        'http://localhost:5173',
-        'https://project-chat-client.onrender.com',
-      ],
+      origin: ['https://admin.socket.io', ...allowedURLs],
       methods: ['GET', 'POST'],
       credentials: true,
     },
