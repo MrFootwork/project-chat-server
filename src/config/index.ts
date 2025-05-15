@@ -29,6 +29,7 @@ export const allowedURLs = [
   FRONTEND_URL_PROD,
   FRONTEND_URL_DEV,
 ];
+console.log(`🚀 ~ allowedURLs:`, allowedURLs)
 
 // Middleware configuration
 export default function config(app: Application) {
