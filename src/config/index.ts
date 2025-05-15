@@ -18,10 +18,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const FRONTEND_URL_LOCAL = process.env.ORIGIN_LOCAL;
-const FRONTEND_URL_LOCAL_PREVIEW = process.env.ORIGIN_LOCAL_PREVIEW;
-const FRONTEND_URL_PROD = process.env.ORIGIN_PRODUCTION;
-const FRONTEND_URL_DEV = process.env.ORIGIN_DEVELOPMENT;
+const FRONTEND_URL_LOCAL = process.env.ORIGIN_LOCAL || 'http://localhost:5173';
+const FRONTEND_URL_LOCAL_PREVIEW =
+  process.env.ORIGIN_LOCAL_PREVIEW || 'http://localhost:5173';
+const FRONTEND_URL_PROD =
+  process.env.ORIGIN_PRODUCTION || 'http://localhost:5173';
+const FRONTEND_URL_DEV =
+  process.env.ORIGIN_DEVELOPMENT || 'http://localhost:5173';
 
 export const allowedURLs = [
   FRONTEND_URL_LOCAL,
@@ -29,7 +32,7 @@ export const allowedURLs = [
   FRONTEND_URL_PROD,
   FRONTEND_URL_DEV,
 ];
-console.log(`🚀 ~ allowedURLs:`, allowedURLs)
+console.log(`🚀 ~ allowedURLs:`, allowedURLs);
 
 // Middleware configuration
 export default function config(app: Application) {
