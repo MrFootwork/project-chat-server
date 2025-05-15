@@ -15,6 +15,9 @@ import cookieParser from 'cookie-parser';
 // unless the request if from the same domain, by default express wont accept POST requests
 import cors from 'cors';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 const FRONTEND_URL_LOCAL = process.env.ORIGIN_LOCAL;
 const FRONTEND_URL_LOCAL_PREVIEW = process.env.ORIGIN_LOCAL_PREVIEW;
 const FRONTEND_URL_PROD = process.env.ORIGIN_PRODUCTION;
