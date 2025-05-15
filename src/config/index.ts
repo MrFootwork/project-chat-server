@@ -15,14 +15,14 @@ import cookieParser from 'cookie-parser';
 // unless the request if from the same domain, by default express wont accept POST requests
 import cors from 'cors';
 
-const FRONTEND_URL_LOCAL = process.env.ORIGIN_LOCAL || 'http://localhost:5173';
-const FRONTEND_URL_PROD =
-  process.env.ORIGIN_PRODUCTION || 'https://project-chat-client.onrender.com';
-const FRONTEND_URL_DEV =
-  process.env.ORIGIN_DEVELOPMENT || 'http://localhost:5173';
+const FRONTEND_URL_LOCAL = process.env.ORIGIN_LOCAL;
+const FRONTEND_URL_LOCAL_PREVIEW = process.env.ORIGIN_LOCAL_PREVIEW;
+const FRONTEND_URL_PROD = process.env.ORIGIN_PRODUCTION;
+const FRONTEND_URL_DEV = process.env.ORIGIN_DEVELOPMENT;
 
 export const allowedURLs = [
   FRONTEND_URL_LOCAL,
+  FRONTEND_URL_LOCAL_PREVIEW,
   FRONTEND_URL_PROD,
   FRONTEND_URL_DEV,
 ];
